@@ -1,68 +1,222 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Complex/Slice Grid (CSGrid) - Simpliest table ever to handle huge Datasets
 
-## Available Scripts
+After evaluating most of existing solutions available for React I didn't found anythging suitable for me. Most of them are bloated or lacks some (according to me) essential functionality. My main requirements to the Datatable was:
 
-In the project directory, you can run:
+* Use standard tables with common and simple layout without js overcoding
+* Render only visible rows inside viewport
+* Rows selection
+* Table has only data rappresentation role. Avoid internal Add/Delete/Export and other functionalities, which greatly should and must be managed outside.
+* Columns and row resizing
+* Columns and rows drag & drop reordering
+* Columns filtering and rows ordering
+* Data selection like in excel
+* Less custom hacks as possible
 
-### `yarn start`
+Back to bloated solutions... My eyes still blood crying after seeing source codes...
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Huge dataset problem
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
+Pagination is good and works well when is necessary to rappresent a lot of data... but... Sometimes we meet situations when long list is still the best rappresentation... Personally never had any necessity, but customers are asking for, they probably knows better...
 
-### `yarn test`
+Browsers have problems with rendering of a very huge DOM elements' tree, no way, we must render data in chunks, but instead of pagination control type we need to achieve the result with scroll bars in some way.
 
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Scroll bars problem
 
-### `yarn build`
+Standard scroll bars are tricky to use. We are going to disable them and use custom instead. Here is another thing which I've tried to avoid... I dislike `<div>` based solutions with a lot of custom event listeners. According to me, HTML5 has a great standard control type - `<input type="range" />`. Let's use it instead!
 
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Basic solution
 
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
+On the input we have an array of objects which we can nicelly slice by selecting start and end position with our standard range control. Now have promoted our range control to vertical scroll bar grade:
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```js
+items = [...] // our very long array
 
-### `yarn eject`
+const [vSlicer, setVSlicer] = useState(0) 
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+return <div>
+    <input type="range" min={0} max={items.length - 1} step={1} value={vSlicer} onChange={(e) => setVSlicer(parseInt(e.target.value)))} />
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+    <table>
+        <tbody>
+            {items.slice(vSlicer, vSlicer + 20).map((row, rowIndex) => {
+            return <tr key={rowIndex} tabIndex={rowIndex}>
+                ...
+            </tr>
+            }}
+        </tbody>
+    </table>
+</div>
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+Seems a little bit more tricky the horizontal scroll bar implementation with range control, but it's not:
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+```js
+items = [...] // our very long array
 
-## Learn More
+const [hSlicer, setHSlicer] = useState(0)
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+return <div>
+    <input type="range" min={0} max={items[0].length - 1} step={1} value={hSlicer} onChange={(e) => setHSlicer(parseInt(e.target.value)))} />
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+    <table>
+        <tbody>
+            {items.map((row, rowIndex) => {
+            return <tr key={rowIndex} tabIndex={rowIndex}>
+                {Object.keys(row).slice(hSlicer, hSlicer + 20).map((colName, colIndex) => {
+                    <td key={colIndex} tabIndex={colIndex}>{row[collName]}</td>
+                })}
+            </tr>
+            }}
+        </tbody>
+    </table>
+</div>
+```
 
-### Code Splitting
+All togheter:
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
+```js
+items = [...] // our very long array
 
-### Analyzing the Bundle Size
+const [vSlicer, setVSlicer] = useState(0) 
+const [hSlicer, setHSlicer] = useState(0)
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
+return <div className="container">
+    <input type="range" className="v-slider" min={0} max={items.length - 1} step={1} value={vSlicer} onChange={(e) => setVSlicer(parseInt(e.target.value)))} />
+    <input type="range" className="h-slider" min={0} max={items[0].length - 1} step={1} value={hSlicer} onChange={(e) => setHSlicer(parseInt(e.target.value)))} />
 
-### Making a Progressive Web App
+    <table>
+        <tbody>
+            {items.slice(vSlicer, vSlicer + 20).map((row, rowIndex) => {
+            return <tr key={rowIndex} tabIndex={rowIndex}>
+                {Object.keys(row).slice(hSlicer, hSlicer + 20).map((colName, colIndex) => {
+                    <td key={colIndex} tabIndex={colIndex}>{row[collName]}</td>
+                })}
+            </tr>
+            }}
+        </tbody>
+    </table>
+</div>
+```
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
+Looks nice! We now have to work a little to style our range controls to make them appear like scroll bars.
+For personal colors take a look at [materialpalette.com](https://www.materialpalette.com/)
 
-### Advanced Configuration
+```css
+html,
+body {
+	height: 100%;
+}
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
+body {
+	margin: 0;
+	background: linear-gradient(45deg, #49a09d, #5f2c82);
+	font-family: sans-serif;
+	font-weight: 100;
+}
 
-### Deployment
+.container {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+}
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
+table {
+	width: 800px;
+	border-collapse: collapse;
+	overflow: hidden;
+	box-shadow: 0 0 20px rgba(0,0,0,0.1);
+}
 
-### `yarn build` fails to minify
+th,
+td {
+	padding: 15px;
+	background-color: rgba(255,255,255,0.2);
+	color: #fff;
+}
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+th {
+	text-align: left;
+}
+
+thead {
+	th {
+		background-color: #55608f;
+	}
+}
+
+tbody {
+	tr {
+		&:hover {
+			background-color: rgba(255,255,255,0.3);
+		}
+	}
+	td {
+		position: relative;
+		&:hover {
+            background-color: rgba(255,255,255,0.2);
+            /*
+			&:before {
+				content: "";
+				position: absolute;
+				left: 0;
+				right: 0;
+				top: -9999px;
+				bottom: -9999px;
+				background-color: rgba(255,255,255,0.2);
+				z-index: -1;
+            }
+            */
+		}
+	}
+}
+```
+
+## Rows and Columns Resizing
+
+Yeah another challange. Normally table has automatic cell size set behavior. To override this and alow collapse and resizing we have to wrap cell content inside resizable `<div>`
+
+Inside this `<div>` we have to place another two `<div>`'s, which becomes our row and col resizers.
+
+```
+______________________
+|                  | |
+|                  | |
+|__________________|_|
+|__________________|_|
+```
+
+Resulting table structure:
+
+```xml
+<div className="container">
+├── <input type="range" /> // <VScrollBar />
+├── <input type="range" /> // <HScrollBar />
+├── <table> // <Table />
+│   ├── <thead> // <Head />
+│   │   └── <tr> // <TableRow //>
+│   │       └── <th> // <HeadCell />
+│   │           └── <div className="sizeBox"> // <SizeBox />
+│   │               ├── {children}
+│   │               ├── <div name="colResizer"> // <ColResizer />
+│   │               └── <div name="rowResizer"> // <RowResizer />
+│   └── <tbody> // <Body />
+│       └── <tr> // <TableRow //>
+│           └── <td>/<th> // <HeadCell />/<BodyCell />
+│               └── <div className="sizeBox"> // <SizeBox />
+│                   ├── {children}
+│                   ├── <div name="colResizer"> // <ColResizer />
+│                   └── <div name="rowResizer"> // <RowResizer />
+└── <div className="contextMenu">
+```
+
+
+Resize logic is following: 
+* Capture target object
+* retreive mouseX and mouseX positions, name (this will define action we doing), and row, offsetHeight, and offsetWidth, then place them into touchState.
+* On move retreive element parent and based on touchState values and mouse offest set new dimension
+* Stop drag or touch event
+
+we used onTouch events in mobile environment and onMouseDown, onMouseMove, onMouseUp for desktop binded globally to table container. Elemens are retreived inside and we perform actions based on their name
+
+
