@@ -22,7 +22,7 @@
 import React, { useEffect, useRef } from 'react'
 import PropTypes from 'prop-types'
 
-// CSS Modulses Server Side Prerendering
+// CSS Modulses
 import s from './scss/style.module.scss'
 
 const HScrollBar = (props) => {

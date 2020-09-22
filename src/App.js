@@ -6,7 +6,7 @@ import ComplexGrid from './components/ReactComplexSliceGrid'
 
 function App() {
 
-  const [items, setItems] = useState(useMemo(() => makeData(5), []))
+  const [items, setItems] = useState(useMemo(() => makeData(1000), []))
   const [selectedItems, setSelectedItems] = useState([])
 
   console.log([...items].shift())

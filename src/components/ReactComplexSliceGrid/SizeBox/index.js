@@ -26,7 +26,7 @@ import classNames from 'classnames'
 import ColResizer from './ColResizer'
 import RowResizer from './RowResizer'
 
-// CSS Modulses Server Side Prerendering
+// CSS Modulses
 import s from './scss/style.module.scss'
 
 const SizeBox = (props) => {

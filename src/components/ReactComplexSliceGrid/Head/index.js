@@ -26,7 +26,7 @@ import TableRow from '../TableRow'
 import { HeadCell } from '../Cells'
 import SizeBox from '../SizeBox'
 
-// CSS Modulses Server Side Prerendering
+// CSS Modulses
 import s from './scss/style.module.scss'
 
 const Head = (props) => {

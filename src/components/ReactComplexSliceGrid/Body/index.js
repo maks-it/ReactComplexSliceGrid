@@ -29,10 +29,10 @@ import SizeBox from '../SizeBox'
 // Components
 import ContentEditable from '../../ContentEditable'
 
+// Functions
 import { DeepMerge } from '../../../functions/Deep'
 
-
-// CSS Modulses Server Side Prerendering
+// CSS Modulses
 import s from './scss/style.module.scss'
 
 const Body = (props) => {

@@ -23,7 +23,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import classNames from 'classnames'
 
-// CSS Modulses Server Side Prerendering
+// CSS Modulses
 import s from './scss/style.module.scss'
 
 const HeadCell = (props) => {

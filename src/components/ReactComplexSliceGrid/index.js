@@ -32,7 +32,7 @@ import { DeepCopy } from '../../functions/Deep'
 
 import PickObjectProps from '../../functions/PickObjectProps'
 
-// CSS Modulses Server Side Prerendering
+// CSS Modulses
 import s from './scss/style.module.scss'
 
 const ComplexGrid = (props) => {
