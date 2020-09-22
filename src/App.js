@@ -1,26 +1,53 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useMemo, useState } from 'react'
+import './App.css'
+
+import { makeData } from './hooks'
+import ComplexGrid from './components/ReactComplexSliceGrid'
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+
+  const [items, setItems] = useState(useMemo(() => makeData(5), []))
+  const [selectedItems, setSelectedItems] = useState([])
+
+  console.log([...items].shift())
+
+  const handleDelete = () => {
+    setItems(items.filter(row => !selectedItems.includes(row.id)))
+  }
+
+  const handleChange = (e, row) => {
+    const { name, value } = e.target
+    const newItems = [...items]
+
+    newItems[row][name] = value
+
+    setItems(newItems)
+  }
+
+  return <><ComplexGrid {...{
+    items: items,
+    columns: {
+      id: { type: 'row-select' },
+      firstName: { title: 'First Name', type: 'editable' },
+      lastName: { title: 'Last Name', type: 'editable' },
+      age: { title: 'Age', type: 'editable' },
+      visits: { title: 'Visits' },
+      progress: { title: 'Progress' },
+      status: { title: 'Status' },
+      subRows: { title: 'Sub Rows' }
+    },
+    onSelect: (ids) => {
+      console.log(ids)
+      setSelectedItems(ids)
+    },
+    onChange: (e, row) => {
+      const { name, value } = e.target
+      console.log(`row: ${row} => {${name}: ${value}}`)
+    }
+  }} />
+
+  <button onClick={handleDelete}>Delete</button>
+</>
 }
 
 export default App;

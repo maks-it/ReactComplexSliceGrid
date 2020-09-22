@@ -1,0 +1,9 @@
+.size-box {
+    padding: 15px;
+    position: relative;
+
+    //Allow to hide excessive cell content in elegant way 
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

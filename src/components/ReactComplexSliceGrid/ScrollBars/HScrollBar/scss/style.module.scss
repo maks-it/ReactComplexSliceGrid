@@ -1,0 +1,37 @@
+.h-slider {
+    -webkit-appearance: none;
+    width: calc(100% - 25px);
+    height: 25px;
+    background: #BDBDBD;
+    outline: none;
+    opacity: 0.7;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
+
+    position: absolute;
+    bottom: 0px;
+
+    z-index: 1;
+
+    &:hover {
+        opacity: 1;
+    }
+
+    &::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 25px;
+        height: 25px;
+        background: #757575
+        ;
+        cursor: pointer;
+      }
+    
+    &::-moz-range-thumb {
+        width: 25px;
+        height: 25px;
+        background: #757575;
+        cursor: pointer;
+    }
+    
+}
