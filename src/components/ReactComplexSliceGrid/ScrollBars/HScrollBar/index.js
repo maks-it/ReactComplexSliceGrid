@@ -22,8 +22,10 @@
 import React, { useEffect, useRef } from 'react'
 import PropTypes from 'prop-types'
 
-// CSS Modulses
-import s from './scss/style.module.scss'
+import CanUseDOM from '../../../../functions/CanUseDOM'
+
+// CSS Modulses Server Side Prerendering
+const s = CanUseDOM() ? require('./scss/style.module.scss') : require('./scss/style.module.scss.json')
 
 const HScrollBar = (props) => {
   const { min, max, step, value, onChange } = props

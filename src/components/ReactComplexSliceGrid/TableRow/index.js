@@ -23,8 +23,11 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import classNames from 'classnames'
 
-// CSS Modulses
-import s from './scss/style.module.scss'
+// Functions
+import CanUseDOM from '../../../functions/CanUseDOM'
+
+// CSS Modulses Server Side Prerendering
+const s = CanUseDOM() ? require('./scss/style.module.scss') : require('./scss/style.module.scss.json')
 
 const TableRow = (props) => {
   const { className, children, ...others } = props

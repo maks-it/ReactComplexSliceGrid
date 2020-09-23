@@ -9,7 +9,7 @@ const RowResizer = (props) => {
 
   }, [])
 
-  return <div name="rowResizer" className={classNames(className)} {...others} dragable="true"
+  return <div type="rowResizer" className={classNames(className)} {...others}
     style={{
       position: 'absolute',
       bottom: '0px',

@@ -29,11 +29,11 @@ import SizeBox from '../SizeBox'
 // Components
 import ContentEditable from '../../ContentEditable'
 
-// Functions
 import { DeepMerge } from '../../../functions/Deep'
+import CanUseDOM from '../../../functions/CanUseDOM'
 
-// CSS Modulses
-import s from './scss/style.module.scss'
+// CSS Modulses Server Side Prerendering
+const s = CanUseDOM() ? require('./scss/style.module.scss') : require('./scss/style.module.scss.json')
 
 const Body = (props) => {
   const { columns, items, chunk, emitSlect, emitChange } = props
@@ -44,12 +44,12 @@ const Body = (props) => {
       return <TableRow key={rowIndex} tabIndex={rowIndex} className={[s.tr]}>
 
         <HeadCell scope="row" className={[s.th]}>
-          <SizeBox disabled>
+          <SizeBox disabled type="rowSwap" row={rowIndex}>
             {rowIndex + 1}
           </SizeBox>
         </HeadCell>
 
-        {Object.keys(row).filter(colName => Object.keys(columns).includes(colName)).map((colName, colIndex) => {
+        {Object.keys(columns).map((colName, colIndex) => {
           const sizeBoxStyle = DeepMerge(columns[colName].__style || {}, row.__style || {})
           // console.log(sizeBoxStyle)
 

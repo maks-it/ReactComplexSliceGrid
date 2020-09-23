@@ -1,7 +1,11 @@
-// not tested well to be refactored
+// import Delta from './Delta'
+import GroupBy from './GroupBy'
+import ElementIndex from './ElementIndex'
+import OffsetIndex from './OffsetIndex'
 
-const GroupBy = require('./GroupBy').default
-
-module.exports = {
-  GroupBy
+export {
+  // Delta,
+  GroupBy,
+  ElementIndex,
+  OffsetIndex
 }

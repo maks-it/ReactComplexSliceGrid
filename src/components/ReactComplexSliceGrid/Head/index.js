@@ -26,8 +26,10 @@ import TableRow from '../TableRow'
 import { HeadCell } from '../Cells'
 import SizeBox from '../SizeBox'
 
-// CSS Modulses
-import s from './scss/style.module.scss'
+import CanUseDOM from '../../../functions/CanUseDOM'
+
+// CSS Modulses Server Side Prerendering
+const s = CanUseDOM() ? require('./scss/style.module.scss') : require('./scss/style.module.scss.json')
 
 const Head = (props) => {
   const { columns, selected, emitSlect } = props
@@ -35,22 +37,21 @@ const Head = (props) => {
   return <thead className={s.thead}>
     <TableRow>
 
-      <HeadCell className={[s.th]} scope="col"><SizeBox>#</SizeBox></HeadCell>
+      <HeadCell className={[s.th]} scope="col"><SizeBox disabled>#</SizeBox></HeadCell>
 
       {Object.keys(columns).map((colName, index) => {
         const sizeBoxStyle = columns[colName].__style || {}
-        // console.log(sizeBoxStyle)
 
         switch (columns[colName]?.type) {
           case 'row-select':
             return <HeadCell key={index} className={[s.th]} scope="col">
-              <SizeBox>
+              <SizeBox disabled>
                 <input type="checkbox" checked={selected} onChange={() => emitSlect(!selected)} />
               </SizeBox>
             </HeadCell>
           default:
             return <HeadCell key={index} className={[s.th]} scope="col">
-              <SizeBox row={-1} name={colName} style={sizeBoxStyle}>
+              <SizeBox row={-1} name={colName} style={sizeBoxStyle} type="colSwap">
                 {columns[colName].title}
               </SizeBox>
             </HeadCell>

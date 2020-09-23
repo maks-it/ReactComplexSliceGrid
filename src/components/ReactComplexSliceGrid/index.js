@@ -19,26 +19,27 @@
  * THIS SOFTWARE.
  */
 
-import React, { useEffect, useState, useLayoutEffect, useRef, memo } from 'react'
+import React, { useEffect, useState, useLayoutEffect, useRef, memo, cloneElement } from 'react'
 import PropTypes from 'prop-types'
 
+// Table components
 import Head from './Head'
 import Body from './Body'
-
 import { HScrollBar, VScrollBar } from './ScrollBars'
+import ContextMenu from './ContextMenu'
 
 // Functions
-import { DeepCopy } from '../../functions/Deep'
-
+import { DeepCopy, DeepMerge } from '../../functions/Deep'
+import CanUseDOM from '../../functions/CanUseDOM'
 import PickObjectProps from '../../functions/PickObjectProps'
 
-// CSS Modulses
-import s from './scss/style.module.scss'
+import { OffsetIndex } from '../../functions/Arrays'
+
+// CSS Modulses Server Side Prerendering
+const s = CanUseDOM() ? require('./scss/style.module.scss') : require('./scss/style.module.scss.json')
 
 const ComplexGrid = (props) => {
   const { caption, items, columns, onSelect, onChange } = props
-
-
 
   /*
   * Table has inner states to manage internal positioning and settings
@@ -84,10 +85,16 @@ const ComplexGrid = (props) => {
     _setTouchState(data)
   }
 
+  // context menu state
+  const [contextMenuState, _setContextMenuState] = useState({})
+  const contectMenuStateRef = useState(contextMenuState)
+  const setContextMenuState = (data) => {
+    contectMenuStateRef.current = data
+    _setContextMenuState(data)
+  }
 
   const containerRef = useRef(null)
   const tableRef = useRef(null)
-  const contextMenuRef = useRef(null)
 
   /*
    * Custom scroll events
@@ -133,37 +140,50 @@ const ComplexGrid = (props) => {
    * Custom touch an drag events
    */
   const handleTouchStart = (e) => {
+    if ([1, 2].includes(e.button)) {
+      return
+    }
+
     // var reactHandler = Object.keys(e.target).filter(key => key.indexOf('__reactEventHandlers') >= 0).map(key => e.target[key]).shift()
     // console.log(reactHandler) // React Event handler object and Properties
     // const { name } = reactHandler
     const target = e.touches ? e.touches[0].target : e.target
-    console.log(target)
-
-    const name = target.getAttribute('name')
+    const type = target.getAttribute('type')
 
     const newState = {
       startPosX: e.touches ? e.touches[0].screenX : e.screenX,
       startPosY: e.touches ? e.touches[0].screenY : e.screenY
     }
 
-    if (['colResizer', 'rowResizer'].includes(name)) {
-      console.log('Complex Grid: start touch cell resizing')
-      newState.touchAction = name
+    if (type) {
+      newState.touchAction = type
+      console.log(`Complex Grid: start touch ${type}`)
+    }
 
+    if (['colSwap', 'rowSwap'].includes(type)) {
+      newState.sizeBoxProps = {
+        row: parseInt(target.getAttribute('row')),
+        name: target.getAttribute('name')
+      }
+    } else if (['colResizer', 'rowResizer'].includes(type)) {
       // newState.sizeBoxProps = DeepMerge(Object.keys(e.target.parentNode).filter(key => key.indexOf('__reactEventHandlers') >= 0).map(key => e.target.parentNode[key]).shift(), {
       //   height: e.target.parentNode.offsetHeight, // extensible problem
       //  width: e.target.parentNode.offsetWidth // extensible problem
       // })
 
       const sizeBox = target.parentElement
+
       newState.sizeBoxProps = {
-        row: sizeBox.getAttribute('row'),
+        row: parseInt(sizeBox.getAttribute('row')),
         name: sizeBox.getAttribute('name'),
 
         height: sizeBox.offsetHeight,
         width: sizeBox.offsetWidth
       }
     } else {
+      if (e.button === 0) {
+        return
+      }
       console.log('Complex Grid: start touch scrolling')
       newState.touchAction = 'scrolling'
     }
@@ -175,9 +195,15 @@ const ComplexGrid = (props) => {
     const mouseX = e.touches ? e.touches[0].screenX : e.screenX
     const mouseY = e.touches ? e.touches[0].screenY : e.screenY
 
-    if (['colResizer', 'rowResizer'].includes(touchState.touchAction)) {
-      console.log('Complex Grid: touch cell resizing')
+    if (touchState.touchAction) {
+      console.log(`Complex Grid: touchMove ${touchState.touchAction}`)
+    }
 
+    if (['colSwap', 'rowSwap'].includes(touchState.touchAction)) {
+      // todo 23092020 - Here goes code to animate row or column drag event
+    }
+
+    if (['colResizer', 'rowResizer'].includes(touchState.touchAction)) {
       const delta = touchState.touchAction === 'colResizer' ? touchState.startPosX - mouseX : touchState.startPosY - mouseY
       const newVal = touchState.touchAction === 'colResizer' ? touchState.sizeBoxProps.width - delta : touchState.sizeBoxProps.height - delta
 
@@ -199,8 +225,6 @@ const ComplexGrid = (props) => {
     }
 
     if (touchState.touchAction === 'scrolling') {
-      console.log('Complex Grid: touch scrolling')
-
       // to do
       // should be calculated based on the screen resolution
       const windowHeight = window.innerHeight
@@ -224,12 +248,36 @@ const ComplexGrid = (props) => {
     }
   }
 
-  const handleTouchEnd = () => {
+  const handleTouchEnd = (e) => {
     if (!touchState.touchAction) {
       return
+    } else {
+      console.log(`Complex Grid: touchEnd ${touchState.touchAction}`)
     }
 
-    console.log('Complex Grid: touch end')
+    const target = e.touches ? e.touches[0].target : e.target
+
+    if (['colSwap', 'rowSwap'].includes(touchState.touchAction)) {
+      if (touchState.touchAction === 'colSwap') {
+        const columns = Object.keys(innerColumns)
+
+        const from = columns.indexOf(touchState.sizeBoxProps.name)
+        const to = columns.indexOf(target.getAttribute('name'))
+
+        const newInnerColumns = {}
+        OffsetIndex(from, to, columns).map(colName => {
+          newInnerColumns[colName] = DeepCopy(innerColumns[colName])
+        })
+        hookInnerColumns(newInnerColumns)
+      }
+
+      if (touchState.touchAction === 'rowSwap') {
+        const from = touchState.sizeBoxProps.row
+        const to = parseInt(target.getAttribute('row'))
+
+        hookInnerItems(OffsetIndex(from, to, innerItems))
+      }
+    }
     setTouchState({})
   }
 
@@ -238,18 +286,18 @@ const ComplexGrid = (props) => {
   */
   const handleContextMenu = (e) => {
     e.preventDefault()
-    /*
-    console.log(Object.keys(e).map(key => console.log(`${key}: ${e[key]}`)))
 
-    const startPosX = e.touches ? e.touches[0].pageX : e.pageX
-    const startPosY = e.touches ? e.touches[0].pageY : e.pageY
+    // method returns the size of an element and its position relative to the viewport.
+    // https://developer.mozilla.org/en-US/docs/Web/API/Element/getBoundingClientRect
+    const rect = containerRef.current.getBoundingClientRect()
 
-    console.log(`${startPosX} ${startPosY}`)
-
-    contextMenuRef.current.style.position = 'absolute'
-    contextMenuRef.current.style.left = `${startPosX}px`
-    contextMenuRef.current.style.top = `${startPosY}px`
-    */
+    setContextMenuState({
+      isOpen: true,
+      style: {
+        left: `${e.clientX - rect.left}px`, // x position within the element.
+        top: `${e.clientY - rect.top}px` // y position within the element.
+      }
+    })
   }
 
   useEffect(() => {
@@ -311,10 +359,9 @@ const ComplexGrid = (props) => {
   }
 */
 
-if (!(items.length > 0)) {
-  return <div className={`${s.container}`}><div>No Data</div></div>
-}
-
+  if (!(items.length > 0)) {
+    return <div className={`${s.container}`}><div>No Data</div></div>
+  }
 
   return <div ref={containerRef} className={`${s.container}`}
     onKeyDown={handleKeyDown}
@@ -390,8 +437,15 @@ if (!(items.length > 0)) {
         }
       }}/>
     </table>
-
-    <div ref={contextMenuRef}>Context menu</div>
+    <ContextMenu {...{
+      isOpen: contextMenuState.isOpen,
+      style: contextMenuState.style,
+      onClose: () => {
+        const newState = DeepCopy(contextMenuState)
+        newState.isOpen = false
+        setContextMenuState(newState)
+      }
+    }} />
   </div>
 }
 

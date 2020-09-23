@@ -26,8 +26,10 @@ import classNames from 'classnames'
 import ColResizer from './ColResizer'
 import RowResizer from './RowResizer'
 
-// CSS Modulses
-import s from './scss/style.module.scss'
+import CanUseDOM from '../../../functions/CanUseDOM'
+
+// CSS Modulses Server Side Prerendering
+const s = CanUseDOM() ? require('./scss/style.module.scss') : require('./scss/style.module.scss.json')
 
 const SizeBox = (props) => {
   const { className, disabled, children, onResize, ...others } = props

@@ -4,6 +4,8 @@ import './App.css'
 import { makeData } from './hooks'
 import ComplexGrid from './components/ReactComplexSliceGrid'
 
+import './scss/style.scss'
+
 function App() {
 
   const [items, setItems] = useState(useMemo(() => makeData(1000), []))
@@ -24,27 +26,36 @@ function App() {
     setItems(newItems)
   }
 
-  return <><ComplexGrid {...{
-    items: items,
-    columns: {
-      id: { type: 'row-select' },
-      firstName: { title: 'First Name', type: 'editable' },
-      lastName: { title: 'Last Name', type: 'editable' },
-      age: { title: 'Age', type: 'editable' },
-      visits: { title: 'Visits' },
-      progress: { title: 'Progress' },
-      status: { title: 'Status' },
-      subRows: { title: 'Sub Rows' }
-    },
-    onSelect: (ids) => {
-      console.log(ids)
-      setSelectedItems(ids)
-    },
-    onChange: (e, row) => {
-      const { name, value } = e.target
-      console.log(`row: ${row} => {${name}: ${value}}`)
-    }
-  }} />
+  return <>
+    
+
+    <div style={{
+      padding: '100px'
+    }}>
+      <h1>MAKS-IT React Complex/Slice Grid (CSGrid)</h1>
+      <ComplexGrid {...{
+      items: items,
+      columns: {
+        id: { type: 'row-select' },
+        firstName: { title: 'First Name', type: 'editable' },
+        lastName: { title: 'Last Name', type: 'editable' },
+        age: { title: 'Age', type: 'editable' },
+        visits: { title: 'Visits' },
+        progress: { title: 'Progress' },
+        status: { title: 'Status' },
+        subRows: { title: 'Sub Rows' }
+      },
+      onSelect: (ids) => {
+        console.log(ids)
+        setSelectedItems(ids)
+      },
+      onChange: (e, row) => {
+        const { name, value } = e.target
+        console.log(`row: ${row} => {${name}: ${value}}`)
+      }
+    }} />
+    </div>
+  
 
   <button onClick={handleDelete}>Delete</button>
 </>

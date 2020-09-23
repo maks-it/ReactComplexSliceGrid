@@ -1,5 +1,9 @@
 # Complex/Slice Grid (CSGrid) - Simpliest table ever to handle huge Datasets
 
+
+![react complex slice grid](images/react_complex_slice_grid.png)
+
+
 After evaluating most of existing solutions available for React I didn't found anythging suitable for me. Most of them are bloated or lacks some (according to me) essential functionality. My main requirements to the Datatable was:
 
 * Use standard tables with common and simple layout without js overcoding
