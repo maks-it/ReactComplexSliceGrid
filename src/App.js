@@ -8,7 +8,7 @@ import './scss/style.scss'
 
 function App() {
 
-  const [items, setItems] = useState(useMemo(() => makeData(1000), []))
+  const [items, setItems] = useState(useMemo(() => makeData(5), []))
   const [selectedItems, setSelectedItems] = useState([])
 
   console.log([...items].shift())
@@ -26,13 +26,10 @@ function App() {
     setItems(newItems)
   }
 
-  return <>
-    
-
-    <div style={{
-      padding: '100px'
-    }}>
-      <h1>MAKS-IT React Complex/Slice Grid (CSGrid)</h1>
+  return <div style={{
+    padding: '0px 100px'
+  }}>
+      {/*<h1>MAKS-IT React Complex/Slice Grid (CSGrid)</h1>*/}
       <ComplexGrid {...{
       items: items,
       columns: {
@@ -54,11 +51,12 @@ function App() {
         console.log(`row: ${row} => {${name}: ${value}}`)
       }
     }} />
-    </div>
+    
   
 
-  <button onClick={handleDelete}>Delete</button>
-</>
+    <button onClick={handleDelete}>Delete</button>
+  </div>
+
 }
 
 export default App;

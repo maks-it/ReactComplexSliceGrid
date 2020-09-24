@@ -28,11 +28,13 @@ import Body from './Body'
 import { HScrollBar, VScrollBar } from './ScrollBars'
 import ContextMenu from './ContextMenu'
 
+// Hooks
+import { useLongPress } from '../../hooks'
+
 // Functions
 import { DeepCopy, DeepMerge } from '../../functions/Deep'
 import CanUseDOM from '../../functions/CanUseDOM'
 import PickObjectProps from '../../functions/PickObjectProps'
-
 import { OffsetIndex } from '../../functions/Arrays'
 
 // CSS Modulses Server Side Prerendering
@@ -84,6 +86,9 @@ const ComplexGrid = (props) => {
     touchStateRef.current = data
     _setTouchState(data)
   }
+
+  // touch time state
+  const [touchTime, setTouchTime] = useState(0)
 
   // context menu state
   const [contextMenuState, _setContextMenuState] = useState({})
@@ -147,12 +152,13 @@ const ComplexGrid = (props) => {
     // var reactHandler = Object.keys(e.target).filter(key => key.indexOf('__reactEventHandlers') >= 0).map(key => e.target[key]).shift()
     // console.log(reactHandler) // React Event handler object and Properties
     // const { name } = reactHandler
-    const target = e.touches ? e.touches[0].target : e.target
+    const target = e.touches && e.touches[0] ? e.touches[0].target : e.target
     const type = target.getAttribute('type')
 
     const newState = {
       startPosX: e.touches ? e.touches[0].screenX : e.screenX,
-      startPosY: e.touches ? e.touches[0].screenY : e.screenY
+      startPosY: e.touches ? e.touches[0].screenY : e.screenY,
+      startTime: new Date()
     }
 
     if (type) {
@@ -172,14 +178,21 @@ const ComplexGrid = (props) => {
       // })
 
       const sizeBox = target.parentElement
+      /*
+       * when sizebox has paddings offsetWidth and offsetHeight do not return its value.
+       * to avoid this problem we must take computed style instead
+       */
+      const style = window.getComputedStyle(sizeBox, null) 
 
       newState.sizeBoxProps = {
         row: parseInt(sizeBox.getAttribute('row')),
         name: sizeBox.getAttribute('name'),
 
-        height: sizeBox.offsetHeight,
-        width: sizeBox.offsetWidth
+        height: parseInt(style.getPropertyValue("height")),
+        width: parseInt(style.getPropertyValue("width"))
       }
+
+      // console.log(newState.sizeBoxProps)
     } else {
       if (e.button === 0) {
         return
@@ -187,6 +200,7 @@ const ComplexGrid = (props) => {
       console.log('Complex Grid: start touch scrolling')
       newState.touchAction = 'scrolling'
     }
+
 
     setTouchState(newState)
   }
@@ -201,12 +215,10 @@ const ComplexGrid = (props) => {
 
     if (['colSwap', 'rowSwap'].includes(touchState.touchAction)) {
       // todo 23092020 - Here goes code to animate row or column drag event
-    }
-
-    if (['colResizer', 'rowResizer'].includes(touchState.touchAction)) {
+    } else if (['colResizer', 'rowResizer'].includes(touchState.touchAction)) {
       const delta = touchState.touchAction === 'colResizer' ? touchState.startPosX - mouseX : touchState.startPosY - mouseY
       const newVal = touchState.touchAction === 'colResizer' ? touchState.sizeBoxProps.width - delta : touchState.sizeBoxProps.height - delta
-
+      // console.log(`${delta} - ${touchState.sizeBoxProps.width} = ${newVal}`)
       if (touchState.touchAction === 'colResizer') {
         const newInnerColumns = DeepCopy(innerColumns)
         newInnerColumns[touchState.sizeBoxProps.name].__style = {
@@ -215,16 +227,17 @@ const ComplexGrid = (props) => {
 
         hookInnerColumns(newInnerColumns)
       } else {
-        const newInnerItems = DeepCopy(innerItems)
-        newInnerItems[touchState.sizeBoxProps.row].__style = {
-          height: newVal
+        if (touchState.sizeBoxProps.row >= 0) {
+          const newInnerItems = DeepCopy(innerItems)
+          newInnerItems[touchState.sizeBoxProps.row].__style = {
+            height: newVal
+          }
+  
+          hookInnerItems(newInnerItems)
         }
 
-        hookInnerItems(newInnerItems)
       }
-    }
-
-    if (touchState.touchAction === 'scrolling') {
+    } else if (touchState.touchAction === 'scrolling'){
       // to do
       // should be calculated based on the screen resolution
       const windowHeight = window.innerHeight
@@ -255,29 +268,30 @@ const ComplexGrid = (props) => {
       console.log(`Complex Grid: touchEnd ${touchState.touchAction}`)
     }
 
-    const target = e.touches ? e.touches[0].target : e.target
+    const changedTouch = e.changedTouches ? e.changedTouches[0] : null
+    const target = changedTouch ? document.elementFromPoint(changedTouch.clientX, changedTouch.clientY) : e.target
 
-    if (['colSwap', 'rowSwap'].includes(touchState.touchAction)) {
-      if (touchState.touchAction === 'colSwap') {
-        const columns = Object.keys(innerColumns)
 
-        const from = columns.indexOf(touchState.sizeBoxProps.name)
-        const to = columns.indexOf(target.getAttribute('name'))
+    if (['colSwap'].includes(touchState.touchAction)) {
+      const columns = Object.keys(innerColumns)
 
-        const newInnerColumns = {}
-        OffsetIndex(from, to, columns).map(colName => {
-          newInnerColumns[colName] = DeepCopy(innerColumns[colName])
-        })
-        hookInnerColumns(newInnerColumns)
-      }
+      const from = columns.indexOf(touchState.sizeBoxProps.name)
+      const to = columns.indexOf(target.getAttribute('name'))
+      console.log(`from: ${from} to: ${to}`)
 
-      if (touchState.touchAction === 'rowSwap') {
-        const from = touchState.sizeBoxProps.row
-        const to = parseInt(target.getAttribute('row'))
-
-        hookInnerItems(OffsetIndex(from, to, innerItems))
-      }
+      const newInnerColumns = {}
+      OffsetIndex(from, to, columns).map(colName => newInnerColumns[colName] = DeepCopy(innerColumns[colName]))
+      hookInnerColumns(newInnerColumns)
     }
+
+    if (['rowSwap'].includes(touchState.touchAction)) {
+      const from = touchState.sizeBoxProps.row
+      const to = parseInt(target.getAttribute('row'))
+      console.log(`from: ${from} to: ${to}`)
+
+      hookInnerItems(OffsetIndex(from, to, innerItems))
+    }
+    
     setTouchState({})
   }
 
@@ -286,7 +300,6 @@ const ComplexGrid = (props) => {
   */
   const handleContextMenu = (e) => {
     e.preventDefault()
-
     // method returns the size of an element and its position relative to the viewport.
     // https://developer.mozilla.org/en-US/docs/Web/API/Element/getBoundingClientRect
     const rect = containerRef.current.getBoundingClientRect()
@@ -298,6 +311,10 @@ const ComplexGrid = (props) => {
         top: `${e.clientY - rect.top}px` // y position within the element.
       }
     })
+  }
+
+  const preventPageTouchScroll = (e) => {
+    e.preventDefault()
   }
 
   useEffect(() => {
@@ -315,11 +332,11 @@ const ComplexGrid = (props) => {
     // Add some event listeners
     const wheelEvent = 'onwheel' in document.createElement('div') ? 'wheel' : 'mousewheel'
     containerRef.current.addEventListener(wheelEvent, handleMouseScroll, false)
-    // containerRef.current.addEventListener('oncontextmenu', handleContextMenu, false)
+    containerRef.current.addEventListener('touchmove', preventPageTouchScroll, false)
 
     return () => {
       containerRef.current.removeEventListener(wheelEvent, handleMouseScroll)
-      // containerRef.current.removeEventListener('oncontextmenu', handleContextMenu)
+      containerRef.current.removeEventListener('touchmove', preventPageTouchScroll)
     }
   }, [])
 

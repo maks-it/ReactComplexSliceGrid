@@ -41,6 +41,7 @@ const Head = (props) => {
 
       {Object.keys(columns).map((colName, index) => {
         const sizeBoxStyle = columns[colName].__style || {}
+        // if (Object.keys(sizeBoxStyle).length !== 0 ) console.log(sizeBoxStyle)
 
         switch (columns[colName]?.type) {
           case 'row-select':

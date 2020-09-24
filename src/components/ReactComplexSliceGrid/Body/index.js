@@ -51,7 +51,7 @@ const Body = (props) => {
 
         {Object.keys(columns).map((colName, colIndex) => {
           const sizeBoxStyle = DeepMerge(columns[colName].__style || {}, row.__style || {})
-          // console.log(sizeBoxStyle)
+          // if (Object.keys(sizeBoxStyle).length !== 0 ) console.log(sizeBoxStyle)
 
           switch (columns[colName]?.type) {
             case 'row-select':
@@ -64,7 +64,7 @@ const Body = (props) => {
             case 'image':
               return <BodyCell key={colIndex} tabIndex={colIndex} className={[s.td]}>
                 <SizeBox disabled>
-                  <img src={row[colName]} className="img-fluid img-thumbnail" />
+                  <img src={row[colName]} alt="" className="img-fluid img-thumbnail" />
                 </SizeBox>
               </BodyCell>
 
