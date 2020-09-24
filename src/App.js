@@ -8,7 +8,7 @@ import './scss/style.scss'
 
 function App() {
 
-  const [items, setItems] = useState(useMemo(() => makeData(5), []))
+  const [items, setItems] = useState(useMemo(() => makeData(100), []))
   const [selectedItems, setSelectedItems] = useState([])
 
   console.log([...items].shift())

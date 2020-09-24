@@ -201,7 +201,6 @@ const ComplexGrid = (props) => {
       newState.touchAction = 'scrolling'
     }
 
-
     setTouchState(newState)
   }
 
@@ -237,7 +236,7 @@ const ComplexGrid = (props) => {
         }
 
       }
-    } else if (touchState.touchAction === 'scrolling'){
+    } else if (touchState.touchAction) {
       // to do
       // should be calculated based on the screen resolution
       const windowHeight = window.innerHeight
@@ -259,9 +258,13 @@ const ComplexGrid = (props) => {
       setSlicer(slicerRef.current - deltaY < 0 ? 0 : slicerRef.current - deltaY)
       setHSlicer(hSlicerRef.current - deltaX < 0 ? 0 : hSlicerRef.current - deltaX)
     }
+
   }
 
   const handleTouchEnd = (e) => {
+    const mouseX = e.changedTouches ? e.changedTouches[0].clientX : e.screenX
+    const mouseY = e.changedTouches ? e.changedTouches[0].clientX : e.screenY
+
     if (!touchState.touchAction) {
       return
     } else {
@@ -271,6 +274,10 @@ const ComplexGrid = (props) => {
     const changedTouch = e.changedTouches ? e.changedTouches[0] : null
     const target = changedTouch ? document.elementFromPoint(changedTouch.clientX, changedTouch.clientY) : e.target
 
+
+
+
+    
 
     if (['colSwap'].includes(touchState.touchAction)) {
       const columns = Object.keys(innerColumns)
