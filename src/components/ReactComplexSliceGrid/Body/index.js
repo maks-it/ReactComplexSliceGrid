@@ -70,19 +70,19 @@ const Body = (props) => {
 
             case 'editable':
               return <BodyCell key={colIndex} tabIndex={colIndex} className={[s.td]}>
-                <SizeBox row={rowIndex} name={colName} style={sizeBoxStyle}>
-                  <ContentEditable style={{
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
-                  }}
-                  name={colName} value={row[colName]} onChange={(e) => emitChange(e, rowIndex)}/>
+                <SizeBox row={rowIndex} name={colName} disabled style={sizeBoxStyle}>
+                  <ContentEditable
+                    style={{
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }} name={colName} value={row[colName]} onChange={(e) => emitChange(e, rowIndex)}/>
                 </SizeBox>
               </BodyCell>
 
             default:
               return <BodyCell key={colIndex} tabIndex={colIndex} className={[s.td]}>
-                <SizeBox row={rowIndex} name={colName} style={sizeBoxStyle}>
+                <SizeBox row={rowIndex} name={colName} disabled style={sizeBoxStyle}>
                   {row[colName]}
                 </SizeBox>
               </BodyCell>

@@ -27,7 +27,7 @@ function App() {
   }
 
   return <div style={{
-    padding: '0px 100px'
+    //padding: '0px 100px'
   }}>
       {/*<h1>MAKS-IT React Complex/Slice Grid (CSGrid)</h1>*/}
       <ComplexGrid {...{
@@ -54,7 +54,7 @@ function App() {
     
   
 
-    <button onClick={handleDelete}>Delete</button>
+    {/*<button onClick={handleDelete}>Delete</button>*/}
   </div>
 
 }

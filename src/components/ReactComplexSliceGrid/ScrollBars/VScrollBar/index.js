@@ -28,7 +28,7 @@ import CanUseDOM from '../../../../functions/CanUseDOM'
 const s = CanUseDOM() ? require('./scss/style.module.scss') : require('./scss/style.module.scss.json')
 
 const VScrollBar = (props) => {
-  const { min, max, step, value, onChange } = props
+  const { min, max, step, value, onChange, ...others } = props
 
   const keyDown = (e) => {
     e.preventDefault()
@@ -60,7 +60,7 @@ const VScrollBar = (props) => {
     }
   }, [])
 
-  return <input ref={rangeRef} type="range" className={s.vSlider} min={min} max={max} step={step} value={value} onChange={onChange} />
+  return <input ref={rangeRef} type="range" className={s.vSlider} {...others} min={min} max={max} step={step} value={value} onChange={onChange} />
 }
 
 VScrollBar.propTypes = {

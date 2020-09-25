@@ -35,7 +35,7 @@ const Head = (props) => {
   const { columns, selected, emitSlect } = props
 
   return <thead className={s.thead}>
-    <TableRow>
+    <TableRow className={[s.tr]}>
 
       <HeadCell className={[s.th]} scope="col"><SizeBox disabled>#</SizeBox></HeadCell>
 

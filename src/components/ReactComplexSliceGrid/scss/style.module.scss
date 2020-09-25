@@ -14,15 +14,14 @@ $scrollbar_button_color: #5AB9EA;
 
 .container {
     position: relative;
-    height: 600px;
-    width: 100%;
-    //border: 1px solid $border_color;
+    // height: 600px;
+    // width: 100%;
+    // border: 1px solid $border_color;
     background: linear-gradient(90deg, #1976D2, #536DFE);
     overflow: hidden;
     user-select: none;
-
     .complexGrid {
-        position: absolute;
+        position: relative;
         top: 0px;
         left: 0px;
         border-collapse: collapse;

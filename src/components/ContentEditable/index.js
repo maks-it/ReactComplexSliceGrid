@@ -23,12 +23,14 @@ import React, { useState, useEffect, useRef } from 'react'
 import PropTypes from 'prop-types'
 import CaretPositioning from '../../functions/EditCaretPositioning'
 
+
 const ContentEditable = (props) => {
   const { name, value, onChange, ...others } = props
 
   const divRef = useRef(null)
 
   const [carretPosition, setCarretPosition] = useState(0)
+  const [isEditable, setEditable] = useState(false)
 
   // proxy handler
   const emitChange = () => {
@@ -52,12 +54,17 @@ const ContentEditable = (props) => {
     CaretPositioning.restoreSelection(divRef.current, carretPosition)
   }, [carretPosition])
 
-  return <div ref={divRef} {...others}
+  return <div ref={divRef} {...others} style={{
+    // background: 'white',
+    // color: 'black'
+  }}
     onInput={emitChange}
     // onBlur={emitChange}
 
-    contentEditable
-    dangerouslySetInnerHTML={{ __html: value }}>
+    contentEditable={isEditable}
+    dangerouslySetInnerHTML={{ __html: value }} onDoubleClick={() => setEditable(true)} onMouseLeave={() => {
+      setEditable(false)
+    }}>
   </div>
 }
 

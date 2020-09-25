@@ -32,8 +32,8 @@ import CanUseDOM from '../../../functions/CanUseDOM'
 const s = CanUseDOM() ? require('./scss/style.module.scss') : require('./scss/style.module.scss.json')
 
 const SizeBox = (props) => {
-  const { className, disabled, children, onResize, ...others } = props
-  return <div className={classNames(s.sizeBox, className)} {...others}>
+  const { className, disabled, children, onDoubleClick, ...others } = props
+  return <div className={classNames(s.sizeBox, className)} {...others} onDoubleClick={onDoubleClick}>
     {children}
 
     {!disabled ? <><ColResizer /><RowResizer /></> : ''}
@@ -45,7 +45,7 @@ SizeBox.propTypes = {
   className: PropTypes.array,
   disabled: PropTypes.bool,
   children: PropTypes.node,
-  onResize: PropTypes.func
+  onDoubleClick: PropTypes.func
 }
 
 export default SizeBox

@@ -36,6 +36,7 @@ import { DeepCopy, DeepMerge } from '../../functions/Deep'
 import CanUseDOM from '../../functions/CanUseDOM'
 import PickObjectProps from '../../functions/PickObjectProps'
 import { OffsetIndex } from '../../functions/Arrays'
+import { IsTouchDevice2 } from '../../functions/TouchLib'
 
 // CSS Modulses Server Side Prerendering
 const s = CanUseDOM() ? require('./scss/style.module.scss') : require('./scss/style.module.scss.json')
@@ -98,6 +99,19 @@ const ComplexGrid = (props) => {
     _setContextMenuState(data)
   }
 
+  // viewport state
+  const [viewPortState, _setViewPortState] = useState({
+    width: '100%',
+    height: '600px'
+  })
+  const viewPortStateRef = useState(viewPortState)
+  const setViewPortState = (data) => {
+    viewPortStateRef.current = data
+    _setViewPortState(data)
+  }
+
+
+
   const containerRef = useRef(null)
   const tableRef = useRef(null)
 
@@ -127,6 +141,10 @@ const ComplexGrid = (props) => {
     if (['ArrowLeft'].includes(e.key)) {
       e.preventDefault()
       setHSlicer(hSlicerRef.current - 1 < 0 ? 0 : hSlicerRef.current - 1)
+    }
+
+    if(['Tab'].includes(e.key)) {
+      // e.preventDefault()
     }
   }
 
@@ -205,6 +223,8 @@ const ComplexGrid = (props) => {
   }
 
   const handleTouchMove = (e) => {
+    e.preventDefault()
+
     const mouseX = e.touches ? e.touches[0].screenX : e.screenX
     const mouseY = e.touches ? e.touches[0].screenY : e.screenY
 
@@ -247,12 +267,12 @@ const ComplexGrid = (props) => {
 
       if (windowHeight > windowWidth) {
       // mobile vertical
-        deltaY = Math.round(deltaY / 75)
-        deltaX = Math.round(deltaX / 150)
+        deltaY = Math.round(deltaY / 100)
+        deltaX = Math.round(deltaX / 100)
       } else {
       // mobile horizontal
-        deltaY = Math.round(deltaY / 150)
-        deltaX = Math.round(deltaX / 75)
+        deltaY = Math.round(deltaY / 100)
+        deltaX = Math.round(deltaX / 100)
       }
 
       setSlicer(slicerRef.current - deltaY < 0 ? 0 : slicerRef.current - deltaY)
@@ -273,11 +293,6 @@ const ComplexGrid = (props) => {
 
     const changedTouch = e.changedTouches ? e.changedTouches[0] : null
     const target = changedTouch ? document.elementFromPoint(changedTouch.clientX, changedTouch.clientY) : e.target
-
-
-
-
-    
 
     if (['colSwap'].includes(touchState.touchAction)) {
       const columns = Object.keys(innerColumns)
@@ -309,6 +324,7 @@ const ComplexGrid = (props) => {
     e.preventDefault()
     // method returns the size of an element and its position relative to the viewport.
     // https://developer.mozilla.org/en-US/docs/Web/API/Element/getBoundingClientRect
+    /*
     const rect = containerRef.current.getBoundingClientRect()
 
     setContextMenuState({
@@ -318,10 +334,21 @@ const ComplexGrid = (props) => {
         top: `${e.clientY - rect.top}px` // y position within the element.
       }
     })
+    */
   }
 
-  const preventPageTouchScroll = (e) => {
-    e.preventDefault()
+  const handleViewportResize = () => {
+    console.log('CustomGrid resizing')
+
+    const parentNode = containerRef.current.parentNode
+    // console.log(parentNode.getBoundingClientRect())
+    setViewPortState({
+      width: `${parentNode.offsetWidth}px`,
+      //height: `${parentNode.offsetHeight}px`
+      height: /*`${parentNode.offsetHeight}px`*/window.innerHeight
+    })
+       
+
   }
 
   useEffect(() => {
@@ -339,11 +366,12 @@ const ComplexGrid = (props) => {
     // Add some event listeners
     const wheelEvent = 'onwheel' in document.createElement('div') ? 'wheel' : 'mousewheel'
     containerRef.current.addEventListener(wheelEvent, handleMouseScroll, false)
-    containerRef.current.addEventListener('touchmove', preventPageTouchScroll, false)
+    window.addEventListener('resize', handleViewportResize, false)
+    handleViewportResize()
 
     return () => {
       containerRef.current.removeEventListener(wheelEvent, handleMouseScroll)
-      containerRef.current.removeEventListener('touchmove', preventPageTouchScroll)
+      window.removeEventListener('resize', handleViewportResize)
     }
   }, [])
 
@@ -387,7 +415,7 @@ const ComplexGrid = (props) => {
     return <div className={`${s.container}`}><div>No Data</div></div>
   }
 
-  return <div ref={containerRef} className={`${s.container}`}
+  return <div ref={containerRef} className={`${s.container}`} style={viewPortState}
     onKeyDown={handleKeyDown}
 
     // touch scrolling events
@@ -402,13 +430,18 @@ const ComplexGrid = (props) => {
     onContextMenu={handleContextMenu}>
 
     {/* Scroll Bars */}
-    <VScrollBar value={slicer} min={0} max={innerItems.length - 1} step={1} onChange={(e) => {
+    {!IsTouchDevice2() ? <>
+    <VScrollBar style={{
+      width: viewPortState.height
+    }} value={slicer} min={0} max={innerItems.length - 1} step={1} onChange={(e) => {
       setSlicer(parseInt(e.target.value))
-    }}/>
+    }}/> 
 
     <HScrollBar value={hSlicer} min={0} max={Object.keys(innerColumns).length - 1} step={1} onChange={(e) => {
       setHSlicer(parseInt(e.target.value))
-    }} />
+    }} /></> : ''}
+
+
 
     {/* Table */}
     <table ref={tableRef} className={`${s.complexGrid}`}>
@@ -434,7 +467,7 @@ const ComplexGrid = (props) => {
 
       <Body {...{
         columns: PickObjectProps(innerColumns, Object.keys(innerColumns).slice(hSlicer, hSlicer + 20)),
-        items: innerItems.slice(slicer, slicer + 20),
+        items: innerItems.slice(slicer, slicer + 15),
         chunk: slicer,
         emitSlect: (row) => {
           const newItems = DeepCopy(innerItems)
