@@ -88,9 +88,6 @@ const ComplexGrid = (props) => {
     _setTouchState(data)
   }
 
-  // touch time state
-  const [touchTime, setTouchTime] = useState(0)
-
   // context menu state
   const [contextMenuState, _setContextMenuState] = useState({})
   const contectMenuStateRef = useState(contextMenuState)
@@ -110,15 +107,12 @@ const ComplexGrid = (props) => {
     _setViewPortState(data)
   }
 
-
-
   const containerRef = useRef(null)
   const tableRef = useRef(null)
 
   /*
    * Custom scroll events
    */
-
   // arrow keys scrolling and tabulation
   const handleKeyDown = (e) => {
     if (['ArrowDown'].includes(e.key)) {

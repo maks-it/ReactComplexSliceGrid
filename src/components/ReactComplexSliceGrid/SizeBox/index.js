@@ -32,11 +32,14 @@ import CanUseDOM from '../../../functions/CanUseDOM'
 const s = CanUseDOM() ? require('./scss/style.module.scss') : require('./scss/style.module.scss.json')
 
 const SizeBox = (props) => {
-  const { className, disabled, children, onDoubleClick, ...others } = props
+  const { className, disabled, colDisabled, rowDisabled, children, onDoubleClick, ...others } = props
   return <div className={classNames(s.sizeBox, className)} {...others} onDoubleClick={onDoubleClick}>
     {children}
 
-    {!disabled ? <><ColResizer /><RowResizer /></> : ''}
+    {!disabled ? <>
+      {!colDisabled ? <ColResizer /> : ''}
+      {!rowDisabled ? <RowResizer /> : ''}
+      </> : ''}
 
   </div>
 }
@@ -44,6 +47,8 @@ const SizeBox = (props) => {
 SizeBox.propTypes = {
   className: PropTypes.array,
   disabled: PropTypes.bool,
+  colDisabled: PropTypes.bool,
+  rowDisabled: PropTypes.bool,
   children: PropTypes.node,
   onDoubleClick: PropTypes.func
 }

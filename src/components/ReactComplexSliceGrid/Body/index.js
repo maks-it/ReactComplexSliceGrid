@@ -44,7 +44,7 @@ const Body = (props) => {
       return <TableRow key={rowIndex} tabIndex={rowIndex} className={[s.tr]}>
 
         <HeadCell scope="row" className={[s.th]}>
-          <SizeBox disabled type="rowSwap" row={rowIndex}>
+          <SizeBox type="rowSwap" row={rowIndex} colDisabled style={row.__style || {}}>
             {rowIndex + 1}
           </SizeBox>
         </HeadCell>
@@ -56,7 +56,7 @@ const Body = (props) => {
           switch (columns[colName]?.type) {
             case 'row-select':
               return <BodyCell key={colIndex} tabIndex={colIndex} className={[s.td]}>
-                <SizeBox disabled>
+                <SizeBox disabled style={row.__style || {}}>
                   <input type="checkbox" checked={row.selected} onChange={() => emitSlect(rowIndex)}/>
                 </SizeBox>
               </BodyCell>

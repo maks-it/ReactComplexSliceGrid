@@ -19,7 +19,7 @@ const RowResizer = (props) => {
 
       cursor: 'row-resize',
 
-      //backgroundColor: 'white'
+      // backgroundColor: 'white'
     }}
   ></div>
 }

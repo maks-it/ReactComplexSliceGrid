@@ -52,7 +52,7 @@ const Head = (props) => {
             </HeadCell>
           default:
             return <HeadCell key={index} className={[s.th]} scope="col">
-              <SizeBox row={-1} name={colName} style={sizeBoxStyle} type="colSwap">
+              <SizeBox row={-1} name={colName} rowDisabled style={sizeBoxStyle} type="colSwap">
                 {columns[colName].title}
               </SizeBox>
             </HeadCell>
