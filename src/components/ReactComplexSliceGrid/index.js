@@ -324,7 +324,7 @@ const ComplexGrid = (props) => {
     e.preventDefault()
     // method returns the size of an element and its position relative to the viewport.
     // https://developer.mozilla.org/en-US/docs/Web/API/Element/getBoundingClientRect
-    /*
+
     const rect = containerRef.current.getBoundingClientRect()
 
     setContextMenuState({
@@ -334,7 +334,6 @@ const ComplexGrid = (props) => {
         top: `${e.clientY - rect.top}px` // y position within the element.
       }
     })
-    */
   }
 
   const handleViewportResize = () => {
