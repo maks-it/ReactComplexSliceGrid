@@ -71,12 +71,13 @@ const Body = (props) => {
             case 'editable':
               return <BodyCell key={colIndex} tabIndex={colIndex} className={[s.td]}>
                 <SizeBox row={rowIndex} name={colName} disabled style={sizeBoxStyle}>
-                  <ContentEditable
-                    style={{
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis'
-                    }} name={colName} value={row[colName]} onChange={(e) => emitChange(e, rowIndex)}/>
+                  <ContentEditable {...{
+                    className: [s.editable],
+                    mode: 'auto',
+                    name: colName,
+                    value: row[colName],
+                    onChange: (e) => emitChange(e, rowIndex)
+                  }} />
                 </SizeBox>
               </BodyCell>
 

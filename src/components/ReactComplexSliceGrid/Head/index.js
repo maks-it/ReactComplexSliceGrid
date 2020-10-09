@@ -19,12 +19,14 @@
  * THIS SOFTWARE.
  */
 
-import React from 'react'
+import React, { useState } from 'react'
 import PropTypes from 'prop-types'
 
 import TableRow from '../TableRow'
 import { HeadCell } from '../Cells'
 import SizeBox from '../SizeBox'
+import Filter from './Filter'
+import SortIndicator from './SortIndicator'
 
 import CanUseDOM from '../../../functions/CanUseDOM'
 
@@ -32,7 +34,9 @@ import CanUseDOM from '../../../functions/CanUseDOM'
 const s = CanUseDOM() ? require('./scss/style.module.scss') : require('./scss/style.module.scss.json')
 
 const Head = (props) => {
-  const { columns, selected, emitSlect } = props
+  const { columns, selected, emitSlect, emitSort, emitFilter } = props
+
+
 
   return <thead className={s.thead}>
     <TableRow className={[s.tr]}>
@@ -51,27 +55,42 @@ const Head = (props) => {
               </SizeBox>
             </HeadCell>
           default:
-            return <HeadCell key={index} className={[s.th]} scope="col">
+            return <HeadCell key={index} className={[s.th]} scope="col" emitDoubleCLick={() => {
+              emitSort(colName)
+            }}>
               <SizeBox row={-1} name={colName} rowDisabled style={sizeBoxStyle} type="colSwap">
-                {columns[colName].title}
+                {columns[colName].title} <SortIndicator {...{
+                  sortMode: columns[colName].sortMode
+                }} />
               </SizeBox>
             </HeadCell>
         }
       })}
     </TableRow>
+
+    <Filter {...{
+      columns: columns,
+      emitFilter: emitFilter
+    }} />
+
+    
   </thead>
 }
 
 Head.propTypes = {
   columns: PropTypes.object,
   selected: PropTypes.bool,
-  emitSlect: PropTypes.func
+  emitSlect: PropTypes.func,
+  emitSort: PropTypes.func,
+  emitFilter: PropTypes.func
 }
 
 Head.defaultProps = {
   columns: {},
   selected: false,
-  emitSlect: null
+  emitSlect: null,
+  emitSort: null,
+  emitFilter: PropTypes.func
 }
 
 export default Head

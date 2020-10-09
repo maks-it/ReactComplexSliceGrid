@@ -1,0 +1,34 @@
+.tr {
+    .th {
+        position: sticky;
+        top: 0; /* Don't forget this, required for the stickiness */
+        z-index: 1;
+
+        background-color: #55608f;
+        color: #fff;
+
+        border-right: 1px solid rgba(255, 255, 255, 0.2);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        
+        &:hover {
+            &::after {
+                //font-family: "Font Awesome 5 Free"; font-weight: 900;
+                //content: '\f0c9';
+            }
+        }
+
+        .editable {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+
+            // background-color: white;
+            // color: black;
+            text-align: left;
+        }
+    }
+}
+
+
+
+

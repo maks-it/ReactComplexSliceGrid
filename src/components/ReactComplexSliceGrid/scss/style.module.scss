@@ -20,6 +20,11 @@ $scrollbar_button_color: #5AB9EA;
     background: linear-gradient(90deg, #1976D2, #536DFE);
     overflow: hidden;
     user-select: none;
+
+    .editable {
+        background: white;
+    }
+
     .complexGrid {
         position: relative;
         top: 0px;

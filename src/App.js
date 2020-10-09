@@ -49,6 +49,12 @@ function App() {
       onChange: (e, row) => {
         const { name, value } = e.target
         console.log(`row: ${row} => {${name}: ${value}}`)
+      },
+      onSort: (colName) => {
+        console.log(colName)
+      },
+      onFilter: () => {
+        
       }
     }} />
     

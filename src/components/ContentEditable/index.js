@@ -21,16 +21,16 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import PropTypes from 'prop-types'
-import CaretPositioning from '../../functions/EditCaretPositioning'
+import EditCaretPositioning from '../../functions/EditCaretPositioning'
 
 
 const ContentEditable = (props) => {
-  const { name, value, onChange, ...others } = props
+  const { name, value, className, mode, onChange, ...others } = props
 
   const divRef = useRef(null)
 
   const [carretPosition, setCarretPosition] = useState(0)
-  const [isEditable, setEditable] = useState(false)
+  const [isEditable, setEditable] = useState(mode === 'enabled' ? true : false)
 
   // proxy handler
   const emitChange = () => {
@@ -47,25 +47,25 @@ const ContentEditable = (props) => {
     }
 
     // set internal component state
-    setCarretPosition(CaretPositioning.saveSelection(divRef.current))
+    setCarretPosition(EditCaretPositioning.saveSelection(divRef.current))
   }
 
   useEffect(() => {
-    CaretPositioning.restoreSelection(divRef.current, carretPosition)
+    EditCaretPositioning.restoreSelection(divRef.current, carretPosition)
   }, [carretPosition])
 
-  return <div ref={divRef} {...others} style={{
-    // background: 'white',
-    // color: 'black'
-  }}
+  return <div ref={divRef} {...others} className={className}
     onInput={emitChange}
     // onBlur={emitChange}
-
-    contentEditable={isEditable}
-    dangerouslySetInnerHTML={{ __html: value }} onDoubleClick={() => setEditable(true)} onMouseLeave={() => {
-      setEditable(false)
-    }}>
+    contentEditable
+    dangerouslySetInnerHTML={{ __html: value }}
+      onDoubleClick={mode === 'auto' ? () => setEditable(true) : null }
+      onMouseLeave={mode === 'auto' ? () => setEditable(false) : null }>
   </div>
+}
+
+ContentEditable.defaultProps = {
+  mode: 'enabled' // 'disabled' || 'auto'
 }
 
 ContentEditable.propTypes = {
@@ -74,6 +74,8 @@ ContentEditable.propTypes = {
     PropTypes.string,
     PropTypes.number
   ]),
+  className: PropTypes.array,
+  mode: PropTypes.string,
   onChange: PropTypes.func.isRequired
 }
 

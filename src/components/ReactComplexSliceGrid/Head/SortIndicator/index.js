@@ -21,38 +21,36 @@
 
 import React from 'react'
 import PropTypes from 'prop-types'
-import classNames from 'classnames'
 
-import CanUseDOM from '../../../functions/CanUseDOM'
+// import CanUseDOM from '../../../functions/CanUseDOM'
 
 // CSS Modulses Server Side Prerendering
-const s = CanUseDOM() ? require('./scss/style.module.scss') : require('./scss/style.module.scss.json')
+// const s = CanUseDOM() ? require('./scss/style.module.scss') : require('./scss/style.module.scss.json')
 
-const HeadCell = (props) => {
-  const { className, children, emitDoubleCLick, ...others } = props
-  return <th className={classNames(s.th, className)} { ...others } onDoubleClick={emitDoubleCLick}>{children}</th>
+const SortIndicator = (props) => {
+  const { sortMode } = props
+
+  const drawIndicator = () => {
+    switch(sortMode) {
+      case 1:
+        return <i className="fas fa-sort-down"></i>
+      case 2:
+        return <i className="fas fa-sort-up"></i>
+      default:
+        return <i className="fas fa-sort"></i>
+    }
+  }
+
+  return drawIndicator()
 }
 
-const BodyCell = (props) => {
-  const { className, children, ...others } = props
-  return <td className={classNames(s.td, className)} { ...others }>{children}</td>
+SortIndicator.propTypes = {
+  sortMode: PropTypes.number,
+ 
 }
 
-const defaultProps = {
-  others: null
+SortIndicator.defaultProps = {
+  sortMode: 0,
 }
 
-HeadCell.defaultProps = defaultProps
-BodyCell.defaultProps = defaultProps
-
-const propTypes = {
-  className: PropTypes.array,
-  children: PropTypes.oneOfType([
-    PropTypes.node,
-    PropTypes.string
-  ])
-}
-HeadCell.propTypes = propTypes
-BodyCell.propTypes = propTypes
-
-export { HeadCell, BodyCell }
+export default SortIndicator
