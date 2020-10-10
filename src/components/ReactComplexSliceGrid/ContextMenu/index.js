@@ -31,7 +31,7 @@ const ContextMenu = (props) => {
   return <div ref={contextMenuRef} className={classNames(s.cmContainer, isOpen ? s.show : {})} {...others}>
     <ul className={classNames(s.ul, s.themeDefault)}>
       <li className={s.li}><i className="fas fa-copy"></i> Copy</li>
-      <li className={s.li}><i class="fas fa-paste"></i> Paste</li>
+      <li className={s.li}><i className="fas fa-paste"></i> Paste</li>
       <li className={s.divider}></li>
       <li className={s.li}><i className="fas fa-undo"></i> Size Restore</li>
       <li className={s.divider}></li>

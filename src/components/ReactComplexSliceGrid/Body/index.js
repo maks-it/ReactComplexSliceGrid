@@ -41,7 +41,7 @@ const Body = (props) => {
   return <tbody className={s.tbody}>
     {items.map((row, rowIndex) => {
       rowIndex = rowIndex + chunk
-      return <TableRow key={rowIndex} tabIndex={rowIndex} className={[s.tr]}>
+      return <TableRow key={rowIndex} className={[s.tr]}>
 
         <HeadCell scope="row" className={[s.th]}>
           <SizeBox type="rowSwap" row={rowIndex} colDisabled style={row.__style || {}}>
@@ -55,23 +55,23 @@ const Body = (props) => {
 
           switch (columns[colName]?.type) {
             case 'row-select':
-              return <BodyCell key={colIndex} tabIndex={colIndex} className={[s.td]}>
+              return <BodyCell key={colIndex} className={[s.td]}>
                 <SizeBox disabled style={row.__style || {}}>
-                  <input type="checkbox" checked={row.selected} onChange={() => emitSlect(rowIndex)}/>
+                  {/*<input type="checkbox" checked={row.selected} onChange={() => emitSlect(rowIndex)}/>*/}
                 </SizeBox>
               </BodyCell>
 
             case 'image':
-              return <BodyCell key={colIndex} tabIndex={colIndex} className={[s.td]}>
+              return <BodyCell key={colIndex} className={[s.td]}>
                 <SizeBox disabled>
                   <img src={row[colName]} alt="" className="img-fluid img-thumbnail" />
                 </SizeBox>
               </BodyCell>
 
             case 'editable':
-              return <BodyCell key={colIndex} tabIndex={colIndex} className={[s.td]}>
+              return <BodyCell key={colIndex} className={[s.td]}>
                 <SizeBox row={rowIndex} name={colName} disabled style={sizeBoxStyle}>
-                  <ContentEditable {...{
+                  <ContentEditable /*tabIndex={(rowIndex + 1)  + (colIndex + 1)}*/ {...{
                     className: [s.editable],
                     mode: 'auto',
                     name: colName,
@@ -82,7 +82,7 @@ const Body = (props) => {
               </BodyCell>
 
             default:
-              return <BodyCell key={colIndex} tabIndex={colIndex} className={[s.td]}>
+              return <BodyCell key={colIndex} className={[s.td]}>
                 <SizeBox row={rowIndex} name={colName} disabled style={sizeBoxStyle}>
                   {row[colName]}
                 </SizeBox>

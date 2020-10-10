@@ -19,14 +19,14 @@ const Filter = (props) => {
         <i className="fas fa-filter"></i>
       </HeadCell>
 
-      {Object.keys(columns).map((colName, index) => {
+      {Object.keys(columns).map((colName, colIndex) => {
         const sizeBoxStyle = columns[colName].__style || {}
 
         switch (columns[colName]?.type) {
             case 'row-select':
-                return <HeadCell className={[s.th]} scope="col"></HeadCell>
+                return <HeadCell key={colIndex} className={[s.th]} scope="col"></HeadCell>
             default:
-                return <HeadCell className={[s.th]} scope="col">
+                return <HeadCell key={colIndex} className={[s.th]} scope="col">
                     <SizeBox disabled style={sizeBoxStyle}>
                         <ContentEditable {...{
                             className: [s.editable],

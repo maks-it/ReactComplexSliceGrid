@@ -21,6 +21,7 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import PropTypes from 'prop-types'
+import classNames from 'classnames'
 import EditCaretPositioning from '../../functions/EditCaretPositioning'
 
 
@@ -48,15 +49,23 @@ const ContentEditable = (props) => {
 
     // set internal component state
     setCarretPosition(EditCaretPositioning.saveSelection(divRef.current))
+    // console.log(divRef.current)
   }
 
+  /*
   useEffect(() => {
-    EditCaretPositioning.restoreSelection(divRef.current, carretPosition)
-  }, [carretPosition])
 
-  return <div ref={divRef} {...others} className={className}
+  }, [carretPosition])
+  */
+
+  return <div ref={divRef} {...others} className={classNames(className)}
     onInput={emitChange}
-    // onBlur={emitChange}
+    onBlur={() => {
+      // Execute a JavaScript when a user leaves an input field
+    }}
+    onKeyUp={() => {
+      EditCaretPositioning.restoreSelection(divRef.current, carretPosition)
+    }}
     contentEditable
     dangerouslySetInnerHTML={{ __html: value }}
       onDoubleClick={mode === 'auto' ? () => setEditable(true) : null }
@@ -65,6 +74,7 @@ const ContentEditable = (props) => {
 }
 
 ContentEditable.defaultProps = {
+  value: "",
   mode: 'enabled' // 'disabled' || 'auto'
 }
 

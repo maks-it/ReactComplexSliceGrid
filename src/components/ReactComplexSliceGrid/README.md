@@ -224,3 +224,36 @@ Resize logic is following:
 we used onTouch events in mobile environment and onMouseDown, onMouseMove, onMouseUp for desktop binded globally to table container. Elemens are retreived inside and we perform actions based on their name
 
 
+## Columns object
+
+```js
+const columns = {
+        id: { type: 'row-select' },
+        firstName: {
+            title: 'First Name',
+            type: 'editable'
+            // sortOrder: 0|1|2 dynamically added during execution
+            // filterText: ""
+        },
+        lastName: {
+            title: 'Last Name',
+            type: 'editable'
+        },
+        age: {
+            title: 'Age',
+            type: 'editable'
+        },
+        visits: {
+            title: 'Visits'
+        },
+        progress: {
+            title: 'Progress'
+        },
+        status: {
+            title: 'Status'
+        },
+        subRows: {
+            title: 'Sub Rows'
+        }
+      },
+```

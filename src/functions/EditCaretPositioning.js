@@ -7,7 +7,7 @@ const EditCaretPositioning = {}
 if (CanUseDOM()) {
   if (window.getSelection && document.createRange) {
     // saves caret position(s)
-    EditCaretPositioning.saveSelection = function (containerEl) {
+    EditCaretPositioning.saveSelection = (containerEl) => {
       var range = window.getSelection().getRangeAt(0)
       var preSelectionRange = range.cloneRange()
       preSelectionRange.selectNodeContents(containerEl)
@@ -20,7 +20,7 @@ if (CanUseDOM()) {
       }
     }
     // restores caret position(s)
-    EditCaretPositioning.restoreSelection = function (containerEl, savedSel) {
+    EditCaretPositioning.restoreSelection = (containerEl, savedSel) => {
       var charIndex = 0; var range = document.createRange()
       range.setStart(containerEl, 0)
       range.collapse(true)
@@ -52,7 +52,7 @@ if (CanUseDOM()) {
     }
   } else if (document.selection && document.body.createTextRange) {
     // saves caret position(s)
-    EditCaretPositioning.saveSelection = function (containerEl) {
+    EditCaretPositioning.saveSelection = (containerEl) => {
       var selectedTextRange = document.selection.createRange()
       var preSelectionTextRange = document.body.createTextRange()
       preSelectionTextRange.moveToElementText(containerEl)
@@ -65,7 +65,7 @@ if (CanUseDOM()) {
       }
     }
     // restores caret position(s)
-    EditCaretPositioning.restoreSelection = function (containerEl, savedSel) {
+    EditCaretPositioning.restoreSelection = (containerEl, savedSel) => {
       var textRange = document.body.createTextRange()
       textRange.moveToElementText(containerEl)
       textRange.collapse(true)

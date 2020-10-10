@@ -414,7 +414,7 @@ const ComplexGrid = (props) => {
   return <div ref={containerRef} className={`${s.container}`} style={viewPortState}
 
 
-    onKeyDown={handleKeyDown}
+    /*onKeyDown={handleKeyDown}*/
 
     // touch scrolling events
     onTouchStart={handleTouchStart}
@@ -425,7 +425,7 @@ const ComplexGrid = (props) => {
     onMouseMove={handleTouchMove}
     onMouseUp={handleTouchEnd}
 
-    onContextMenu={handleContextMenu}>
+    /*onContextMenu={handleContextMenu}*/>
 
     {/* Scroll Bars */}
     {!IsTouchDevice2() ? <>
@@ -443,6 +443,8 @@ const ComplexGrid = (props) => {
     {/* Global filter */}
     <ContentEditable {...{
       className: [s.editable],
+      name: "globalSearch",
+      value: "",
       onChange: (e) => {
         const { value } = e.target
 
@@ -517,17 +519,17 @@ const ComplexGrid = (props) => {
               case 1:
                 newInnerColumns[colName].sortMode = 2
                 hookInnerColumns(newInnerColumns)
-                return evaluate(a, b, 'desc')
+                return evaluate(a, b, 'asc')
 
               case 2:
                 newInnerColumns[colName].sortMode = 1
                 hookInnerColumns(newInnerColumns)
-                return evaluate(a, b)
+                return evaluate(a, b, 'desc')
 
               default:
                 newInnerColumns[colName].sortMode = 1
                 hookInnerColumns(newInnerColumns)
-                return evaluate(a, b)
+                return evaluate(a, b, 'desc')
             }
           }))
 
@@ -538,16 +540,38 @@ const ComplexGrid = (props) => {
         emitFilter: (e) => {
           const { name, value } = e.target
 
-          const newItems = []
-          for(let i = 0, len = items.length; i < len; i++) {
+          const newInnerColumns = DeepCopy(innerColumns)
+          newInnerColumns[name].filterText = value
 
-            const check = items[i][name] ?  items[i][name].toString() : ""
-            if(check.includes(value)) {
-              newItems.push(items[i])
+          hookInnerItems(() => {
+            const newItems = []
+        
+            for(let i = 0, len = items.length; i < len; i++) {
+              const found = []
+              Object.keys(newInnerColumns).forEach(colName => {
+                const filterText = newInnerColumns[colName].filterText
+                
+                if (filterText && filterText !== "") {
+                  
+                  if (items[i][colName]?.toString().includes(filterText)) {
+                    found.push(true)
+                  } else {
+                    found.push(false)
+                  }
+                } else {
+                  found.push(true)
+                }
+              })
+      
+              if(found.reduce((sum, next) => sum && next, true)) {
+                newItems.push(items[i])
+              }
             }
-          }
+        
+            return newItems
+          })
 
-          hookInnerItems(newItems)
+          hookInnerColumns(newInnerColumns)
 
           if (onFilter && {}.toString.call(onFilter) === '[object Function]') {
             onFilter()
