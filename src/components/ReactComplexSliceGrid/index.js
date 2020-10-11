@@ -97,8 +97,9 @@ const ComplexGrid = (props) => {
   const [touchState, _setTouchState] = useState({})
   const touchStateRef = useRef(touchState)
   const setTouchState = (data) => {
-    touchStateRef.current = data
-    _setTouchState(data)
+    const newData = DeepCopy(data)
+    touchStateRef.current = newData
+    _setTouchState(newData)
   }
 
   // context menu state
@@ -244,20 +245,18 @@ const ComplexGrid = (props) => {
       const newVal = touchState.touchAction === 'colResizer' ? touchState.sizeBoxProps.width - delta : touchState.sizeBoxProps.height - delta
       // console.log(`${delta} - ${touchState.sizeBoxProps.width} = ${newVal}`)
       if (touchState.touchAction === 'colResizer') {
-        const newInnerColumns = DeepCopy(innerColumns)
-        newInnerColumns[touchState.sizeBoxProps.name].__style = {
+        innerColumns[touchState.sizeBoxProps.name].__style = {
           width: newVal
         }
 
-        hookInnerColumns(newInnerColumns)
+        hookInnerColumns(innerColumns)
       } else {
         if (touchState.sizeBoxProps.row >= 0) {
-          const newInnerItems = DeepCopy(innerItems)
-          newInnerItems[touchState.sizeBoxProps.row].__style = {
+          innerItems[touchState.sizeBoxProps.row].__style = {
             height: newVal
           }
   
-          hookInnerItems(newInnerItems)
+          hookInnerItems(innerItems)
         }
 
       }
@@ -307,7 +306,7 @@ const ComplexGrid = (props) => {
       console.log(`from: ${from} to: ${to}`)
 
       const newInnerColumns = {}
-      OffsetIndex(from, to, columns).map(colName => newInnerColumns[colName] = DeepCopy(innerColumns[colName]))
+      OffsetIndex(from, to, columns).map(colName => newInnerColumns[colName] = innerColumns[colName])
       hookInnerColumns(newInnerColumns)
     }
 
@@ -479,6 +478,7 @@ const ComplexGrid = (props) => {
     /*onKeyDown={handleKeyDown}*/
 
     // touch scrolling events
+
     onTouchStart={handleTouchStart}
     onTouchMove={handleTouchMove}
     onTouchEnd={handleTouchEnd}
@@ -486,6 +486,7 @@ const ComplexGrid = (props) => {
     onMouseDown={handleTouchStart}
     onMouseMove={handleTouchMove}
     onMouseUp={handleTouchEnd}
+    
 
     onContextMenu={handleContextMenu}>
 
@@ -562,7 +563,7 @@ const ComplexGrid = (props) => {
               sortDirection = 'asc'
           }
           innerColumns[colName].sortDirection = sortDirection
-          
+
           const sortedItems = sortItems(innerItems, innerColumns)
 
           if (onSort && {}.toString.call(onSort) === '[object Function]') {

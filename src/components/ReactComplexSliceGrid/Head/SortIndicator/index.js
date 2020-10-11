@@ -45,7 +45,7 @@ const SortIndicator = (props) => {
 }
 
 SortIndicator.propTypes = {
-  sortDirection: PropTypes.number,
+  sortDirection: PropTypes.string,
  
 }
 

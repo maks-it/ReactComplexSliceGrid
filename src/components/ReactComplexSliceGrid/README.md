@@ -232,7 +232,7 @@ const columns = {
         firstName: {
             title: 'First Name',
             type: 'editable'
-            // sortDirection: 0|1|2 dynamically added during initialization
+            // sortDirection: 0|1|-1 dynamically added during initialization
             // filterText: "" dynamically added during initialization
         },
         lastName: {
