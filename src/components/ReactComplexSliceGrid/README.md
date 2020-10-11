@@ -232,8 +232,8 @@ const columns = {
         firstName: {
             title: 'First Name',
             type: 'editable'
-            // sortOrder: 0|1|2 dynamically added during execution
-            // filterText: ""
+            // sortDirection: 0|1|2 dynamically added during initialization
+            // filterText: "" dynamically added during initialization
         },
         lastName: {
             title: 'Last Name',

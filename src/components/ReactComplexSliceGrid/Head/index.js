@@ -60,7 +60,7 @@ const Head = (props) => {
             }}>
               <SizeBox row={-1} name={colName} rowDisabled style={sizeBoxStyle} type="colSwap">
                 {columns[colName].title} <SortIndicator {...{
-                  sortMode: columns[colName].sortMode
+                  sortDirection: columns[colName].sortDirection
                 }} />
               </SizeBox>
             </HeadCell>

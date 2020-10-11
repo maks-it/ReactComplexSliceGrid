@@ -11,17 +11,22 @@ function App() {
   const [items, setItems] = useState(useMemo(() => makeData(100), []))
   const [selectedItems, setSelectedItems] = useState([])
 
-  console.log([...items].shift())
+  // console.log([...items].shift())
 
   const handleDelete = () => {
     setItems(items.filter(row => !selectedItems.includes(row.id)))
   }
 
-  const handleChange = (e, row) => {
+  const handleChange = (e, id) => {
     const { name, value } = e.target
     const newItems = [...items]
+    for (let i = 0, len = newItems.length; i < len; i++) {
+      const item = newItems[i]
 
-    newItems[row][name] = value
+      if(item.id === id) {
+        item[name] = value
+      }
+    }
 
     setItems(newItems)
   }
@@ -43,24 +48,28 @@ function App() {
         subRows: { title: 'Sub Rows' }
       },
       onSelect: (ids) => {
-        console.log(ids)
+        console.log(`selecting: ${ids}`)
+        
         setSelectedItems(ids)
       },
-      onChange: (e, row) => {
+      onChange: (e, id) => {
         const { name, value } = e.target
-        console.log(`row: ${row} => {${name}: ${value}}`)
+        console.log(`changing: ${id} => {${name}: ${value}}`)
+
+        handleChange(e, id)
       },
       onSort: (colName) => {
-        console.log(colName)
+        console.log(`sorting: ${colName}`)
       },
-      onFilter: () => {
-        
+      onFilter: (e) => {
+        const { name, value } = e.target
+        console.log(`filtering: ${name}: ${value}`)
       }
     }} />
     
   
 
-    {/*<button onClick={handleDelete}>Delete</button>*/}
+    <button onClick={handleDelete}>Delete</button>
   </div>
 
 }

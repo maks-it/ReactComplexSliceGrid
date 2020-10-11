@@ -19,7 +19,7 @@
  * THIS SOFTWARE.
  */
 
-import React, { useEffect, useState, useLayoutEffect, useRef, memo, cloneElement } from 'react'
+import React, { useEffect, useState, useLayoutEffect, useRef, memo } from 'react'
 import PropTypes from 'prop-types'
 
 // Table components
@@ -29,7 +29,7 @@ import { HScrollBar, VScrollBar } from './ScrollBars'
 import ContextMenu from './ContextMenu'
 
 // Components
-import ContentEditable from '../ContentEditable'
+import MyInput from '../MyInput'
 
 // Hooks
 import { useLongPress } from '../../hooks'
@@ -40,6 +40,7 @@ import CanUseDOM from '../../functions/CanUseDOM'
 import PickObjectProps from '../../functions/PickObjectProps'
 import { OffsetIndex } from '../../functions/Arrays'
 import { IsTouchDevice2 } from '../../functions/TouchLib'
+import { IsEqual, GetDelta } from '../../functions/Arrays/Delta'
 
 // CSS Modulses Server Side Prerendering
 const s = CanUseDOM() ? require('./scss/style.module.scss') : require('./scss/style.module.scss.json')
@@ -48,23 +49,32 @@ const ComplexGrid = (props) => {
   const { caption, items, maxRows, columns, onSelect, onSort, onFilter, onChange } = props
 
   /*
+   * Container and table Refs to attach event listeners
+   */
+  const containerRef = useRef(null)
+  const tableRef = useRef(null)
+
+  /*
   * Table has inner states to manage internal positioning and settings
+  * Resf are used eventually to access state from attached event listeners
   */
 
   // row items
   const [innerItems, _hookInnerItems] = useState([])
   const innerItemsRef = useRef(innerItems)
   const hookInnerItems = (data) => {
-    innerItemsRef.current = data
-    _hookInnerItems(data)
+    const newData = DeepCopy(data)
+    innerItemsRef.current = newData
+    _hookInnerItems(newData)
   }
 
   // columns
   const [innerColumns, _hookInnerColumns] = useState({})
   const innerColumnsRef = useRef(innerColumns)
   const hookInnerColumns = (data) => {
-    innerColumnsRef.current = data
-    _hookInnerColumns(data)
+    const newData = DeepCopy(data)
+    innerColumnsRef.current = newData
+    _hookInnerColumns(newData)
   }
 
   // vertical range slider value (vertical scroll bar replacement)
@@ -93,10 +103,11 @@ const ComplexGrid = (props) => {
 
   // context menu state
   const [contextMenuState, _setContextMenuState] = useState({})
-  const contectMenuStateRef = useState(contextMenuState)
+  const contectMenuStateRef = useRef(contextMenuState)
   const setContextMenuState = (data) => {
-    contectMenuStateRef.current = data
-    _setContextMenuState(data)
+    const newData = DeepCopy(data)
+    contectMenuStateRef.current = newData
+    _setContextMenuState(newData)
   }
 
   // viewport state
@@ -109,9 +120,6 @@ const ComplexGrid = (props) => {
     viewPortStateRef.current = data
     _setViewPortState(data)
   }
-
-  const containerRef = useRef(null)
-  const tableRef = useRef(null)
 
   /*
    * Custom scroll events
@@ -316,7 +324,7 @@ const ComplexGrid = (props) => {
 
   /*
    * Custom right click events
-  */
+   */
   const handleContextMenu = (e) => {
     e.preventDefault()
     // method returns the size of an element and its position relative to the viewport.
@@ -347,19 +355,93 @@ const ComplexGrid = (props) => {
 
   }
 
+
+
+  /*
+   * Filtering
+   * Multiple columns filter 
+   */
+  const filterItems = (items, columns) => {
+    const newItems = []
+        
+    // used for loop due to the performance reasons
+    for(let i = 0, len = items.length; i < len; i++) {
+      const item = items[i]
+      let found = []
+      let hasFilter = false
+
+      Object.keys(columns).filter(colName => colName !=='id').forEach(colName => {
+        const filterText = columns[colName].filterText
+        const text = item[colName] ? item[colName].toString() : ''
+
+        if(filterText !== '') {
+          hasFilter = true
+
+          if(text.indexOf(filterText) > -1) {
+            found.push(true)
+          } else {
+            found.push(false)
+          }
+        }
+      })
+
+      if(hasFilter ? !found.includes(false) : true) {
+        newItems.push(item)
+      }
+    }
+
+    return newItems
+  }
+
+  /*
+   * Sorting
+   * Multiple columns sorting
+   */
+  const sortItems = (items, columns) => {
+    /*return items.sort((a, b) => {
+      Object.keys(columns).forEach(colName => {
+        
+      })
+    })*/
+
+    return items
+  }
+
+
+
+
   useEffect(() => {
     /*
-    * In case there are some missing parameters in var columns,
-    * such values will not be rendered in head. To resolve this issue
-    * items default props names should used instead
-    */
+     * In case there are some missing parameters in var columns,
+     * such values will not be rendered in head. To resolve this issue
+     * items default props names should used instead.
+     * We add also some internal fields used for internal functionality
+     */
     const newColumns = {}
-    Object.keys([...items].shift()).map(colName => {
+    Object.keys([...items].shift()).forEach(colName => {
+      // add missing properties
       newColumns[colName] = Object.keys(columns).includes(colName) ? columns[colName] : { title: colName }
+
+      // add internal fields
+      newColumns[colName].sortDirection = '' // unordered
+      newColumns[colName].filterText = ''
     })
+
+    /*
+     * Create internal columns state
+     */
     hookInnerColumns(newColumns)
 
-    // Add some event listeners
+    hookInnerItems(items.map(item => {
+      /*
+       * To avoid controlled/uncontrolled warning selected prop is
+       * immediatelly set to its default value
+       */
+      item.selected = false
+      return item
+    }))
+
+    // Add scroll and resize event listeners
     const wheelEvent = 'onwheel' in document.createElement('div') ? 'wheel' : 'mousewheel'
     containerRef.current.addEventListener(wheelEvent, handleMouseScroll, false)
     window.addEventListener('resize', handleViewportResize, false)
@@ -371,12 +453,14 @@ const ComplexGrid = (props) => {
     }
   }, [])
 
-  /*
-   * When items are added or deleted externally inner state should be updated.
-   */
   useEffect(() => {
-    if (items.length !== innerItems.length) {
-      hookInnerItems(DeepCopy(items).map(item => {
+    if(items.length !== innerItems.length) {
+      // 1.
+      const filteredItems = filterItems(items, innerColumns)
+      // 2.
+      const sortedItems = sortItems(filteredItems, innerColumns)
+      // 3.
+      hookInnerItems(filteredItems.map(item => {
         /*
          * To avoid controlled/uncontrolled warning selected prop is
          * immediatelly set to its default value
@@ -387,33 +471,11 @@ const ComplexGrid = (props) => {
     }
   }, [items])
 
-  /*
-  if (CanUseDOM()) {
-    useLayoutEffect(() => {
-      const theadRow =  tableRef.current.getElementsByTagName('tr')?.[0]
-      const th = theadRow.getElementsByTagName('th')
-
-      const newCols = []
-      for(let i=0, len=th.length; i<len; i++) {
-        console.log(th[i])
-        newCols.push({
-          width: th[i].offsetWidth
-        })
-      }
-
-      console.log(newCols.reduce((sum, next) => sum && next.width, true))
-
-    })
-  }
-*/
-
   if (!(items.length > 0)) {
     return <div className={`${s.container}`}><div>No Data</div></div>
   }
 
   return <div ref={containerRef} className={`${s.container}`} style={viewPortState}
-
-
     /*onKeyDown={handleKeyDown}*/
 
     // touch scrolling events
@@ -425,7 +487,7 @@ const ComplexGrid = (props) => {
     onMouseMove={handleTouchMove}
     onMouseUp={handleTouchEnd}
 
-    /*onContextMenu={handleContextMenu}*/>
+    onContextMenu={handleContextMenu}>
 
     {/* Scroll Bars */}
     {!IsTouchDevice2() ? <>
@@ -441,13 +503,12 @@ const ComplexGrid = (props) => {
 
 
     {/* Global filter */}
-    <ContentEditable {...{
-      className: [s.editable],
+    <MyInput {...{
       name: "globalSearch",
       value: "",
       onChange: (e) => {
         const { value } = e.target
-
+          /*
           const newItems = []
           for(let i = 0, len = items.length; i < len; i++) {
             let found = false
@@ -461,8 +522,9 @@ const ComplexGrid = (props) => {
           }
 
           hookInnerItems(newItems)
+          */
       }
-    }} />
+    }}/>
 
 
     {/* Table */}
@@ -471,151 +533,111 @@ const ComplexGrid = (props) => {
 
       <Head {...{
         columns: PickObjectProps(innerColumns, Object.keys(innerColumns).slice(hSlicer, hSlicer + 20)),
-        selected: innerItems.reduce((sum, next) => sum && next.selected, true),
+        selected: innerItems.length > 0 ? innerItems.reduce((sum, next) => sum && next.selected, true) : false,
         emitSlect: (selected) => {
-          const newItems = DeepCopy(innerItems).map(row => {
+          const newItems = innerItems.map(row => {
             row.selected = selected
             return row
           })
 
-          hookInnerItems(newItems)
-          // callback
+          // 1. callback
           if (onSelect && {}.toString.call(onSelect) === '[object Function]') {
             const colName = Object.keys(innerColumns).filter(colName => innerColumns[colName]?.type === 'row-select').shift()
             onSelect(newItems.filter(row => row.selected).map(row => row[colName]))
           }
+
+          // 2. internal
+          hookInnerItems(newItems)
         },
         emitSort: (colName) => {
-
-          const newItems = DeepCopy(innerItems)
-          hookInnerItems(newItems.sort((a, b) => {
-            
-            const newInnerColumns = DeepCopy(innerColumns)
-            Object.keys(newInnerColumns).forEach(item => {
-              newInnerColumns[item].sortMode = 0
-            })
-
-            // http://www.javascriptkit.com/javatutors/arraysort2.shtml
-            const evaluate = (a, b, order = 'asc') => {
-              a = a[colName]?.toString().toLowerCase()
-              b = b[colName]?.toString().toLowerCase()
-
-              if(order === 'asc') {
-                if (a < b) //sort string ascending
-                  return 1 
-                if (a > b)
-                    return -1
-                return 0 //default return value (no sorting)
-              } else {
-                if (a < b) //sort string ascending
-                  return -1 
-                if (a > b)
-                    return 1
-                return 0 //default return value (no sorting)
-              }
-            }
-            
-            switch(innerColumns[colName].sortMode) {
-              case 1:
-                newInnerColumns[colName].sortMode = 2
-                hookInnerColumns(newInnerColumns)
-                return evaluate(a, b, 'asc')
-
-              case 2:
-                newInnerColumns[colName].sortMode = 1
-                hookInnerColumns(newInnerColumns)
-                return evaluate(a, b, 'desc')
-
-              default:
-                newInnerColumns[colName].sortMode = 1
-                hookInnerColumns(newInnerColumns)
-                return evaluate(a, b, 'desc')
-            }
-          }))
+          let sortDirection = innerColumns[colName].sortDirection
+          switch (sortDirection) {
+            case 'asc':
+              sortDirection = 'desc'
+              break
+            case 'desc':
+              sortDirection = ''
+              break
+            default:
+              sortDirection = 'asc'
+          }
+          innerColumns[colName].sortDirection = sortDirection
+          
+          const sortedItems = sortItems(innerItems, innerColumns)
 
           if (onSort && {}.toString.call(onSort) === '[object Function]') {
             onSort(colName)
           }
+
+          hookInnerItems(sortedItems)          
+          hookInnerColumns(innerColumns)
         },
         emitFilter: (e) => {
           const { name, value } = e.target
 
-          const newInnerColumns = DeepCopy(innerColumns)
-          newInnerColumns[name].filterText = value
+          innerColumns[name].filterText = value
+          const filteredItems = filterItems(items, innerColumns)
 
-          hookInnerItems(() => {
-            const newItems = []
-        
-            for(let i = 0, len = items.length; i < len; i++) {
-              const found = []
-              Object.keys(newInnerColumns).forEach(colName => {
-                const filterText = newInnerColumns[colName].filterText
-                
-                if (filterText && filterText !== "") {
-                  
-                  if (items[i][colName]?.toString().includes(filterText)) {
-                    found.push(true)
-                  } else {
-                    found.push(false)
-                  }
-                } else {
-                  found.push(true)
-                }
-              })
-      
-              if(found.reduce((sum, next) => sum && next, true)) {
-                newItems.push(items[i])
-              }
-            }
-        
-            return newItems
-          })
-
-          hookInnerColumns(newInnerColumns)
-
+          // 1. callback
           if (onFilter && {}.toString.call(onFilter) === '[object Function]') {
-            onFilter()
+            onFilter(e)
           }
+
+          // 2. internal
+          hookInnerItems(filteredItems)
+          hookInnerColumns(innerColumns)
         }
-        
       }} />
 
       <Body {...{
         columns: PickObjectProps(innerColumns, Object.keys(innerColumns).slice(hSlicer, hSlicer + 20)),
         items: innerItems.slice(slicer, slicer + maxRows),
         chunk: slicer,
-        emitSlect: (row) => {
-          const newItems = DeepCopy(innerItems)
-          newItems[row].selected = !newItems[row].selected
-          hookInnerItems(newItems)
+        emitSlect: (id) => {
+          for (let i = 0, len = innerItems.length; i < len; i++) {
+            if (innerItems[i].id === id) {
+              innerItems[i].selected = !innerItems[i].selected
+              break
+            }
+          }
 
-          // callback
+          // 1. callback
           if (onSelect && {}.toString.call(onSelect) === '[object Function]') {
             const colName = Object.keys(innerColumns).filter(colName => innerColumns[colName]?.type === 'row-select').shift()
-            onSelect(newItems.filter(row => row.selected).map(row => row[colName]))
+            onSelect(innerItems.filter(row => row.selected).map(row => row[colName]))
           }
+
+          // 2. internal
+          hookInnerItems(innerItems)
         },
-        emitChange: (e, row) => {
+        emitChange: (e, id) => {
           const { name, value } = e.target
 
-          const newItems = DeepCopy(innerItems)
-          newItems[row][name] = value
-          hookInnerItems(newItems)
+          // update internal state
 
-          // callback
-          if (onChange && {}.toString.call(onChange) === '[object Function]') {
-            onChange(e, row)
+          for (let i = 0, len = innerItems.length; i < len; i++) {
+            if(innerItems[i].id === id) {
+              innerItems[i][name] = value
+              break
+            }
           }
+
+          // 1. callback update parent state
+          if (onChange && {}.toString.call(onChange) === '[object Function]') {
+            onChange(e, id)
+          }
+
+          // 2. internal
+          hookInnerItems(innerItems)
         }
-      }}/>
+      }} />
     </table>
     <ContextMenu {...{
       isOpen: contextMenuState.isOpen,
       style: contextMenuState.style,
       onClose: () => {
-        const newState = DeepCopy(contextMenuState)
-        newState.isOpen = false
-        setContextMenuState(newState)
+        contextMenuState.isOpen = false
+        setContextMenuState(contextMenuState)
       }
     }} />
   </div>

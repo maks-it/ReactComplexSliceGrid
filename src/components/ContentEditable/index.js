@@ -66,10 +66,11 @@ const ContentEditable = (props) => {
     onKeyUp={() => {
       EditCaretPositioning.restoreSelection(divRef.current, carretPosition)
     }}
+
     contentEditable
     dangerouslySetInnerHTML={{ __html: value }}
-      onDoubleClick={mode === 'auto' ? () => setEditable(true) : null }
-      onMouseLeave={mode === 'auto' ? () => setEditable(false) : null }>
+      /*onDoubleClick={mode === 'auto' ? () => setEditable(true) : null }
+      onMouseLeave={mode === 'auto' ? () => setEditable(false) : null } */>
   </div>
 }
 

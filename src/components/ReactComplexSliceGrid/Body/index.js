@@ -27,7 +27,7 @@ import { HeadCell, BodyCell } from '../Cells'
 import SizeBox from '../SizeBox'
 
 // Components
-import ContentEditable from '../../ContentEditable'
+import MyInput from '../../MyInput'
 
 import { DeepMerge } from '../../../functions/Deep'
 import CanUseDOM from '../../../functions/CanUseDOM'
@@ -57,7 +57,7 @@ const Body = (props) => {
             case 'row-select':
               return <BodyCell key={colIndex} className={[s.td]}>
                 <SizeBox disabled style={row.__style || {}}>
-                  {/*<input type="checkbox" checked={row.selected} onChange={() => emitSlect(rowIndex)}/>*/}
+                  <input type="checkbox" checked={row.selected} onChange={() => emitSlect(row.id)}/>
                 </SizeBox>
               </BodyCell>
 
@@ -71,12 +71,10 @@ const Body = (props) => {
             case 'editable':
               return <BodyCell key={colIndex} className={[s.td]}>
                 <SizeBox row={rowIndex} name={colName} disabled style={sizeBoxStyle}>
-                  <ContentEditable /*tabIndex={(rowIndex + 1)  + (colIndex + 1)}*/ {...{
-                    className: [s.editable],
-                    mode: 'auto',
-                    name: colName,
-                    value: row[colName],
-                    onChange: (e) => emitChange(e, rowIndex)
+                  <MyInput {...{
+                      name: colName,
+                      value: row[colName]?.toString(),
+                      onChange: (e) => emitChange(e, row.id)
                   }} />
                 </SizeBox>
               </BodyCell>

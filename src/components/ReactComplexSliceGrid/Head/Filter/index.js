@@ -4,12 +4,14 @@ import PropTypes from 'prop-types'
 import TableRow from '../../TableRow'
 import { HeadCell } from '../../Cells'
 import SizeBox from '../../SizeBox'
-import ContentEditable from '../../../ContentEditable'
+import MyInput from '../../../MyInput'
+
 
 import CanUseDOM from '../../../../functions/CanUseDOM'
 
 // CSS Modulses Server Side Prerendering
 const s = CanUseDOM() ? require('./scss/style.module.scss') : require('./scss/style.module.scss.json')
+
 
 const Filter = (props) => {
     const { columns, emitFilter } = props
@@ -28,12 +30,11 @@ const Filter = (props) => {
             default:
                 return <HeadCell key={colIndex} className={[s.th]} scope="col">
                     <SizeBox disabled style={sizeBoxStyle}>
-                        <ContentEditable {...{
-                            className: [s.editable],
+                        
+                        <MyInput {...{
                             name: colName,
-                            value: "",
-                            mode: 'enabled',
-                            onChange: (e) => emitFilter(e)
+                            value: columns[colName].filterText ? columns[colName].filterText: "",
+                            onChange: emitFilter
                         }} />
                     </SizeBox>
                 </HeadCell>
