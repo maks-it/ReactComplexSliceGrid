@@ -14,46 +14,64 @@ const s = CanUseDOM() ? require('./scss/style.module.scss') : require('./scss/st
 
 
 const Filter = (props) => {
-    const { columns, emitFilter } = props
+    const { columns, emitFilter, emitGlobalFilter } = props
 
-    return <TableRow className={[s.tr]}>
-      <HeadCell className={[s.th]} scope="col">
-        <i className="fas fa-filter"></i>
-      </HeadCell>
+    return <>
+        <TableRow className={[s.tr]}>
+        <HeadCell className={[s.th]} scope="col">
+            <i className="fas fa-filter"></i>
+        </HeadCell>
 
-      {Object.keys(columns).map((colName, colIndex) => {
-        const sizeBoxStyle = columns[colName].__style || {}
+        {Object.keys(columns).map((colName, colIndex) => {
+            const sizeBoxStyle = columns[colName].__style || {}
 
-        switch (columns[colName]?.type) {
-            case 'row-select':
-                return <HeadCell key={colIndex} className={[s.th]} scope="col"></HeadCell>
-            default:
-                return <HeadCell key={colIndex} className={[s.th]} scope="col">
-                    <SizeBox disabled style={sizeBoxStyle}>
-                        
-                        <MyInput {...{
-                            name: colName,
-                            value: columns[colName].filterText ? columns[colName].filterText: "",
-                            onChange: emitFilter
-                        }} />
-                    </SizeBox>
-                </HeadCell>
-        }
+            switch (columns[colName]?.type) {
+                case 'row-select':
+                    return <HeadCell key={colIndex} className={[s.th]} scope="col"></HeadCell>
+                default:
+                    return <HeadCell key={colIndex} className={[s.th]} scope="col">
+                        <SizeBox disabled style={sizeBoxStyle}>
+                            
+                            <MyInput {...{
+                                name: colName,
+                                //value: "", //columns[colName].filterText ? columns[colName].filterText: "",
+                                onChange: emitFilter
+                            }} />
+                        </SizeBox>
+                    </HeadCell>
+            }
 
-          
-      })}
-    </TableRow>
+            
+        })}
+        </TableRow>
+
+        <TableRow className={[s.tr]}>
+            <HeadCell className={[s.th]}></HeadCell>
+            <HeadCell className={[s.th]}></HeadCell>
+            <HeadCell colSpan={Object.keys(columns).length - 1} className={[s.th]}>
+                <SizeBox disabled style={null}>
+                    <MyInput {...{
+                        name: "globalFilter",
+                        // value: "",
+                        onChange: emitGlobalFilter
+                    }} />
+                </SizeBox>
+            </HeadCell>
+        </TableRow>
+    </>
 }
 
 
 
 Filter.propTypes = {
-    emitFilter: PropTypes.func
+    emitFilter: PropTypes.func,
+    emitGlobalFilter: PropTypes.func
 }
 
 Filter.defeultProps = {
     columns: {},
-    emitFilter: null
+    emitFilter: null,
+    emitGlobalFilter: null
 }
 
 export default Filter

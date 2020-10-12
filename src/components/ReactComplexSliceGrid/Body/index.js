@@ -68,7 +68,8 @@ const Body = (props) => {
                 </SizeBox>
               </BodyCell>
 
-            case 'editable':
+            case 'string':
+            case 'number':
               return <BodyCell key={colIndex} className={[s.td]}>
                 <SizeBox row={rowIndex} name={colName} disabled style={sizeBoxStyle}>
                   <MyInput {...{
@@ -78,6 +79,13 @@ const Body = (props) => {
                   }} />
                 </SizeBox>
               </BodyCell>
+
+            case 'date-time':
+              return <BodyCell key={colIndex} className={[s.td]}>
+              <SizeBox row={rowIndex} name={colName} disabled style={sizeBoxStyle}>
+                {row[colName]}
+              </SizeBox>
+            </BodyCell>
 
             default:
               return <BodyCell key={colIndex} className={[s.td]}>

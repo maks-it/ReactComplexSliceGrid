@@ -41,6 +41,7 @@ import PickObjectProps from '../../functions/PickObjectProps'
 import { OffsetIndex } from '../../functions/Arrays'
 import { IsTouchDevice2 } from '../../functions/TouchLib'
 import { IsEqual, GetDelta } from '../../functions/Arrays/Delta'
+import { createPortal } from 'react-dom'
 
 // CSS Modulses Server Side Prerendering
 const s = CanUseDOM() ? require('./scss/style.module.scss') : require('./scss/style.module.scss.json')
@@ -49,12 +50,16 @@ const ComplexGrid = (props) => {
   const { caption, items, maxRows, columns, onSelect, onSort, onFilter, onChange } = props
 
   /*
+   * Refs
+   *
    * Container and table Refs to attach event listeners
    */
   const containerRef = useRef(null)
   const tableRef = useRef(null)
 
   /*
+  * States
+  *
   * Table has inner states to manage internal positioning and settings
   * Resf are used eventually to access state from attached event listeners
   */
@@ -75,6 +80,14 @@ const ComplexGrid = (props) => {
     const newData = DeepCopy(data)
     innerColumnsRef.current = newData
     _hookInnerColumns(newData)
+  }
+
+  // global filter
+  const [globalFilterText, _hookGlobalFilterText] = useState('')
+  const globalFilterTextRef = useRef(globalFilterText)
+  const hookGlobalFilterText = (data) => {
+    globalFilterTextRef.current = data
+    _hookGlobalFilterText(data)
   }
 
   // vertical range slider value (vertical scroll bar replacement)
@@ -121,6 +134,11 @@ const ComplexGrid = (props) => {
     viewPortStateRef.current = data
     _setViewPortState(data)
   }
+
+
+  /*
+   * Event handlers
+   */
 
   /*
    * Custom scroll events
@@ -354,11 +372,13 @@ const ComplexGrid = (props) => {
 
   }
 
-
+  /*
+   * Functions
+   */
 
   /*
    * Filtering
-   * Multiple columns filter 
+   * Single columns filter 
    */
   const filterItems = (items, columns) => {
     const newItems = []
@@ -393,21 +413,108 @@ const ComplexGrid = (props) => {
   }
 
   /*
+   * Multiple columns filter
+   */
+  const globalFilterItems = (items, columns, filterText) => {
+    const newItems = []
+
+    for(let i = 0, len = items.length; i < len; i++) {
+      const item = items[i]
+      let found = false
+
+      if(filterText !== '') {
+        Object.keys(columns).filter(colName => colName !=='id').forEach(colName => {
+          if(item[colName] && item[colName].toString().includes(filterText)) {
+            found = true
+          }
+        })
+      } else {
+        found = true
+      }
+
+      if(found) newItems.push(item)
+    }
+
+    return newItems
+  }
+
+  /*
    * Sorting
    * Multiple columns sorting
    */
   const sortItems = (items, columns) => {
-    /*return items.sort((a, b) => {
-      Object.keys(columns).forEach(colName => {
-        
+    const criteria = []
+    Object.keys(columns).forEach(colName => {
+      criteria.push({
+        key: colName,
+        type: columns[colName].type,
+        dir: columns[colName].sortDir
       })
-    })*/
+    })
 
-    return items
+    return items.sort((a, b) => {
+      const results = []
+
+      const isNum = function(v){
+        return (!isNaN(parseFloat(v)) && isFinite(v));	
+      };
+
+      /**
+       * 
+       * @param {*} a 
+       * @param {*} b 
+       * @param {number} d - direction
+       */
+      const sortNum = (a, b, d) => {
+        a = a * 1
+        b = b * 1
+        if (a === b) return 0
+        return a > b ? 1 * d : -1 * d;
+      }
+
+      /**
+       * 
+       * @param {*} a 
+       * @param {*} b 
+       * @param {number} d 
+       */
+      const sortStr = (a, b, d) => {
+        a = a ? a.toString() : ''
+        b = b ? b.toString() : ''
+        return a.localeCompare(b) * d
+      }
+
+      for(let i = 0, len = criteria.length; i < len; i++) {
+        const k = criteria[i].key
+        const type = criteria[i].type
+        const dir = criteria[i].dir === 'asc' ? 1 : criteria[i].dir === 'desc' ? -1 : 0
+        
+
+        switch(type) {
+          case 'string':
+            results.push(sortStr(a[k], b[k], dir))
+          break
+
+          case 'number':
+            results.push(sortNum(a[k], b[k], dir))
+          break
+
+          case 'date-time':
+            break
+
+          default:
+            break
+        }
+       
+      }
+
+      return results.reduce((sum, result) => sum || result, 0)
+    })
   }
 
-
-
+  /*
+   * Lifecycle methods
+   */
 
   useEffect(() => {
     /*
@@ -422,7 +529,7 @@ const ComplexGrid = (props) => {
       newColumns[colName] = Object.keys(columns).includes(colName) ? columns[colName] : { title: colName }
 
       // add internal fields
-      newColumns[colName].sortDirection = '' // unordered
+      newColumns[colName].sortDir = 'skip' // unordered
       newColumns[colName].filterText = ''
     })
 
@@ -455,11 +562,11 @@ const ComplexGrid = (props) => {
   useEffect(() => {
     if(items.length !== innerItems.length) {
       // 1.
-      const filteredItems = filterItems(items, innerColumns)
-      // 2.
+      const globallyFilteredItems = globalFilterItems(items, innerColumns, globalFilterText)
+      const filteredItems = filterItems(globallyFilteredItems, innerColumns)
       const sortedItems = sortItems(filteredItems, innerColumns)
-      // 3.
-      hookInnerItems(filteredItems.map(item => {
+      // 2.
+      hookInnerItems(sortedItems.map(item => {
         /*
          * To avoid controlled/uncontrolled warning selected prop is
          * immediatelly set to its default value
@@ -474,6 +581,9 @@ const ComplexGrid = (props) => {
     return <div className={`${s.container}`}><div>No Data</div></div>
   }
 
+  /*
+   * Implementation
+   */
   return <div ref={containerRef} className={`${s.container}`} style={viewPortState}
     /*onKeyDown={handleKeyDown}*/
 
@@ -502,32 +612,6 @@ const ComplexGrid = (props) => {
       setHSlicer(parseInt(e.target.value))
     }} /></> : ''}
 
-
-    {/* Global filter */}
-    <MyInput {...{
-      name: "globalSearch",
-      value: "",
-      onChange: (e) => {
-        const { value } = e.target
-          /*
-          const newItems = []
-          for(let i = 0, len = items.length; i < len; i++) {
-            let found = false
-            Object.keys(items[i]).forEach(colName => {
-              if(items[i][colName] && items[i][colName].toString().includes(value)) {
-                found = true
-              }
-            })
-
-            if(found) newItems.push(items[i])
-          }
-
-          hookInnerItems(newItems)
-          */
-      }
-    }}/>
-
-
     {/* Table */}
     <table ref={tableRef} className={`${s.complexGrid}`}>
       {/* <caption>{caption}</caption> */}
@@ -551,20 +635,22 @@ const ComplexGrid = (props) => {
           hookInnerItems(newItems)
         },
         emitSort: (colName) => {
-          let sortDirection = innerColumns[colName].sortDirection
-          switch (sortDirection) {
+          let sortDir = innerColumns[colName].sortDir
+          switch (sortDir) {
             case 'asc':
-              sortDirection = 'desc'
+              sortDir = 'desc'
               break
             case 'desc':
-              sortDirection = ''
+              sortDir = 'skip'
               break
             default:
-              sortDirection = 'asc'
+              sortDir = 'asc'
           }
-          innerColumns[colName].sortDirection = sortDirection
+          innerColumns[colName].sortDir = sortDir
 
-          const sortedItems = sortItems(innerItems, innerColumns)
+          const globalFilteredItems = globalFilterItems(innerItems, innerColumns, globalFilterText)
+          const filteredItems = filterItems(globalFilteredItems, innerColumns)
+          const sortedItems = sortItems(filteredItems, innerColumns)
 
           if (onSort && {}.toString.call(onSort) === '[object Function]') {
             onSort(colName)
@@ -577,7 +663,10 @@ const ComplexGrid = (props) => {
           const { name, value } = e.target
 
           innerColumns[name].filterText = value
-          const filteredItems = filterItems(items, innerColumns)
+
+          const globalFilteredItems = globalFilterItems(items, innerColumns, globalFilterText)
+          const filteredItems = filterItems(globalFilteredItems, innerColumns)
+          const sortedItems = sortItems(filteredItems, innerColumns)
 
           // 1. callback
           if (onFilter && {}.toString.call(onFilter) === '[object Function]') {
@@ -585,8 +674,21 @@ const ComplexGrid = (props) => {
           }
 
           // 2. internal
-          hookInnerItems(filteredItems)
+          hookInnerItems(sortedItems)
           hookInnerColumns(innerColumns)
+        },
+        emitGlobalFilter: (e) => {
+          const { value } = e.target
+
+          const globallyFilteredItems = globalFilterItems(items, innerColumns, value)
+          const filteredItems = filterItems(globallyFilteredItems, innerColumns)
+          const sortedItems = sortItems(filteredItems, innerColumns)
+
+          // 1. callback
+
+          // 2. internal
+          hookGlobalFilterText(value)
+          hookInnerItems(sortedItems)
         }
       }} />
 

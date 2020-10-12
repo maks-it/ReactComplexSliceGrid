@@ -31,20 +31,18 @@ function App() {
     setItems(newItems)
   }
 
-  return <div style={{
-    //padding: '0px 100px'
-  }}>
-      {/*<h1>MAKS-IT React Complex/Slice Grid (CSGrid)</h1>*/}
-      <ComplexGrid {...{
+return <div style={{/*padding: '0px 100px'*/}}>
+    {/*<h1>MAKS-IT React Complex/Slice Grid (CSGrid)</h1>*/}
+    <ComplexGrid {...{
       items: items,
       columns: {
         id: { type: 'row-select' },
-        firstName: { title: 'First Name', type: 'editable' },
-        lastName: { title: 'Last Name', type: 'editable' },
-        age: { title: 'Age', type: 'editable' },
-        visits: { title: 'Visits' },
-        progress: { title: 'Progress' },
-        status: { title: 'Status' },
+        firstName: { title: 'First Name', type: 'string' },
+        lastName: { title: 'Last Name', type: 'string' },
+        age: { title: 'Age', type: 'number' },
+        visits: { title: 'Visits', type: 'number' },
+        progress: { title: 'Progress', type: 'number' },
+        status: { title: 'Status', type: 'string' },
         subRows: { title: 'Sub Rows' }
       },
       onSelect: (ids) => {

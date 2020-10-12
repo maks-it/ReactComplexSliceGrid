@@ -34,7 +34,7 @@ import CanUseDOM from '../../../functions/CanUseDOM'
 const s = CanUseDOM() ? require('./scss/style.module.scss') : require('./scss/style.module.scss.json')
 
 const Head = (props) => {
-  const { columns, selected, emitSlect, emitSort, emitFilter } = props
+  const { columns, selected, emitSlect, emitSort, emitFilter, emitGlobalFilter } = props
 
 
 
@@ -60,7 +60,7 @@ const Head = (props) => {
             }}>
               <SizeBox row={-1} name={colName} rowDisabled style={sizeBoxStyle} type="colSwap">
                 {columns[colName].title} <SortIndicator {...{
-                  sortDirection: columns[colName].sortDirection
+                  sortDir: columns[colName].sortDir
                 }} />
               </SizeBox>
             </HeadCell>
@@ -70,7 +70,8 @@ const Head = (props) => {
 
     <Filter {...{
       columns: columns,
-      emitFilter: emitFilter
+      emitFilter: emitFilter,
+      emitGlobalFilter: emitGlobalFilter
     }} />
 
     
@@ -82,7 +83,8 @@ Head.propTypes = {
   selected: PropTypes.bool,
   emitSlect: PropTypes.func,
   emitSort: PropTypes.func,
-  emitFilter: PropTypes.func
+  emitFilter: PropTypes.func,
+  emitGlobalFilter: PropTypes.func
 }
 
 Head.defaultProps = {
@@ -90,7 +92,8 @@ Head.defaultProps = {
   selected: false,
   emitSlect: null,
   emitSort: null,
-  emitFilter: PropTypes.func
+  emitFilter: null,
+  emitGlobalFilter: null
 }
 
 export default Head

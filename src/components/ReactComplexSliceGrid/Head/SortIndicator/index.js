@@ -28,10 +28,10 @@ import PropTypes from 'prop-types'
 // const s = CanUseDOM() ? require('./scss/style.module.scss') : require('./scss/style.module.scss.json')
 
 const SortIndicator = (props) => {
-  const { sortDirection } = props
+  const { sortDir } = props
 
   const drawIndicator = () => {
-    switch(sortDirection) {
+    switch(sortDir) {
       case 'asc':
         return <i className="fas fa-sort-down"></i>
       case 'desc':
@@ -45,12 +45,12 @@ const SortIndicator = (props) => {
 }
 
 SortIndicator.propTypes = {
-  sortDirection: PropTypes.string,
+  sortDir: PropTypes.string,
  
 }
 
 SortIndicator.defaultProps = {
-  sortDirection: '',
+  sortDir: '',
 }
 
 export default SortIndicator

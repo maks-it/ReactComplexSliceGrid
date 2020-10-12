@@ -8,7 +8,7 @@ const MyInput = (props) => {
     const [enabled, setEnabled] = useState(false)
 
     useEffect(() => {
-        if(!enabled) {
+        if(value && !enabled) {
             setEditorState(() => EditorState.createWithContent(ContentState.createFromText(value)))}
     }, [value])
 
