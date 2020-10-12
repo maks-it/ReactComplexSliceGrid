@@ -1,1 +1,27 @@
 @import "fonts";
+
+
+@import "fonts";
+
+.public-DraftStyleDefault-block {
+    white-space: nowrap;
+    overflow: hidden;
+
+    text-align: left;
+
+}
+
+.DraftEditor-root {
+    white-space: nowrap;
+    overflow: hidden;
+    // text-overflow: ellipsis;
+
+    text-align: left;
+    // background: white;
+    // color: black;
+}
+
+div.DraftEditor-editorContainer,
+div.public-DraftEditor-content {
+
+}

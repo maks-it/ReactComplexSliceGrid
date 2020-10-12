@@ -62,6 +62,10 @@ return <div style={{/*padding: '0px 100px'*/}}>
       onFilter: (e) => {
         const { name, value } = e.target
         console.log(`filtering: ${name}: ${value}`)
+      },
+      onGlobalFilter: (e) => {
+        const { name, value } = e.target
+        console.log(`global filtering: ${name}: ${value}`)
       }
     }} />
     

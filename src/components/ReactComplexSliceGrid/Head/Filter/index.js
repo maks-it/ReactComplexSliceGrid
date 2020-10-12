@@ -52,7 +52,7 @@ const Filter = (props) => {
                 <SizeBox disabled style={null}>
                     <MyInput {...{
                         name: "globalFilter",
-                        // value: "",
+                        //value: "",
                         onChange: emitGlobalFilter
                     }} />
                 </SizeBox>

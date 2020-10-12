@@ -47,7 +47,7 @@ import { createPortal } from 'react-dom'
 const s = CanUseDOM() ? require('./scss/style.module.scss') : require('./scss/style.module.scss.json')
 
 const ComplexGrid = (props) => {
-  const { caption, items, maxRows, columns, onSelect, onSort, onFilter, onChange } = props
+  const { caption, items, maxRows, columns, onSelect, onSort, onFilter, onGlobalFilter, onChange } = props
 
   /*
    * Refs
@@ -685,7 +685,9 @@ const ComplexGrid = (props) => {
           const sortedItems = sortItems(filteredItems, innerColumns)
 
           // 1. callback
-
+          if (onGlobalFilter && {}.toString.call(onGlobalFilter) === '[object Function]') {
+            onGlobalFilter(e)
+          }
           // 2. internal
           hookGlobalFilterText(value)
           hookInnerItems(sortedItems)

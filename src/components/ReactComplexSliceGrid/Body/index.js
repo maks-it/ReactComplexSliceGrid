@@ -71,7 +71,7 @@ const Body = (props) => {
             case 'string':
             case 'number':
               return <BodyCell key={colIndex} className={[s.td]}>
-                <SizeBox row={rowIndex} name={colName} disabled style={sizeBoxStyle}>
+                <SizeBox name={colName} disabled style={sizeBoxStyle}>
                   <MyInput {...{
                       name: colName,
                       value: row[colName]?.toString(),
@@ -82,14 +82,14 @@ const Body = (props) => {
 
             case 'date-time':
               return <BodyCell key={colIndex} className={[s.td]}>
-              <SizeBox row={rowIndex} name={colName} disabled style={sizeBoxStyle}>
+              <SizeBox name={colName} disabled style={sizeBoxStyle}>
                 {row[colName]}
               </SizeBox>
             </BodyCell>
 
             default:
               return <BodyCell key={colIndex} className={[s.td]}>
-                <SizeBox row={rowIndex} name={colName} disabled style={sizeBoxStyle}>
+                <SizeBox name={colName} disabled style={sizeBoxStyle}>
                   {row[colName]}
                 </SizeBox>
               </BodyCell>
