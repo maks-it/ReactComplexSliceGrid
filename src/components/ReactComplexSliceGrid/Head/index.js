@@ -29,6 +29,7 @@ import Filter from './Filter'
 import SortIndicator from './SortIndicator'
 
 import CanUseDOM from '../../../functions/CanUseDOM'
+import GlobalFilter from './GlobalFilter'
 
 // CSS Modulses Server Side Prerendering
 const s = CanUseDOM() ? require('./scss/style.module.scss') : require('./scss/style.module.scss.json')
@@ -39,6 +40,11 @@ const Head = (props) => {
 
 
   return <thead className={s.thead}>
+    <GlobalFilter {...{
+      columns: columns,
+      emitGlobalFilter: emitGlobalFilter
+    }} />
+
     <TableRow className={[s.tr]}>
 
       <HeadCell className={[s.th]} scope="col"><SizeBox disabled>#</SizeBox></HeadCell>
@@ -70,8 +76,7 @@ const Head = (props) => {
 
     <Filter {...{
       columns: columns,
-      emitFilter: emitFilter,
-      emitGlobalFilter: emitGlobalFilter
+      emitFilter: emitFilter
     }} />
 
     

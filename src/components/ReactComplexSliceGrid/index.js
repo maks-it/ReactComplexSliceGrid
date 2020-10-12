@@ -453,8 +453,10 @@ const ComplexGrid = (props) => {
     })
 
     return items.sort((a, b) => {
-      const results = []
-
+      /**
+       * 
+       * @param {*} v 
+       */
       const isNum = function(v){
         return (!isNaN(parseFloat(v)) && isFinite(v));	
       };
@@ -468,6 +470,7 @@ const ComplexGrid = (props) => {
       const sortNum = (a, b, d) => {
         a = a * 1
         b = b * 1
+
         if (a === b) return 0
         return a > b ? 1 * d : -1 * d;
       }
@@ -481,15 +484,17 @@ const ComplexGrid = (props) => {
       const sortStr = (a, b, d) => {
         a = a ? a.toString() : ''
         b = b ? b.toString() : ''
+
         return a.localeCompare(b) * d
       }
-
+      
+      const results = []
+      
       for(let i = 0, len = criteria.length; i < len; i++) {
         const k = criteria[i].key
         const type = criteria[i].type
         const dir = criteria[i].dir === 'asc' ? 1 : criteria[i].dir === 'desc' ? -1 : 0
         
-
         switch(type) {
           case 'string':
             results.push(sortStr(a[k], b[k], dir))
@@ -504,8 +509,7 @@ const ComplexGrid = (props) => {
 
           default:
             break
-        }
-       
+        } 
       }
 
       return results.reduce((sum, result) => sum || result, 0)
@@ -676,6 +680,7 @@ const ComplexGrid = (props) => {
           // 2. internal
           hookInnerItems(sortedItems)
           hookInnerColumns(innerColumns)
+          // setSlicer(0)
         },
         emitGlobalFilter: (e) => {
           const { value } = e.target
@@ -691,6 +696,7 @@ const ComplexGrid = (props) => {
           // 2. internal
           hookGlobalFilterText(value)
           hookInnerItems(sortedItems)
+          // setSlicer(0)
         }
       }} />
 

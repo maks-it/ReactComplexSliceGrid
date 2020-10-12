@@ -71,7 +71,7 @@ return <div style={{/*padding: '0px 100px'*/}}>
     
   
 
-    <button onClick={handleDelete}>Delete</button>
+    {/*<button onClick={handleDelete}>Delete</button>*/}
   </div>
 
 }

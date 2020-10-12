@@ -86,7 +86,7 @@ const Body = (props) => {
                 {row[colName]}
               </SizeBox>
             </BodyCell>
-
+            
             default:
               return <BodyCell key={colIndex} className={[s.td]}>
                 <SizeBox name={colName} disabled style={sizeBoxStyle}>

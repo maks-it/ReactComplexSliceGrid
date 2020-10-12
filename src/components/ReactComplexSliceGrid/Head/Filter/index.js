@@ -16,8 +16,7 @@ const s = CanUseDOM() ? require('./scss/style.module.scss') : require('./scss/st
 const Filter = (props) => {
     const { columns, emitFilter, emitGlobalFilter } = props
 
-    return <>
-        <TableRow className={[s.tr]}>
+    return  <TableRow className={[s.tr]}>
         <HeadCell className={[s.th]} scope="col">
             <i className="fas fa-filter"></i>
         </HeadCell>
@@ -40,38 +39,20 @@ const Filter = (props) => {
                         </SizeBox>
                     </HeadCell>
             }
-
-            
         })}
-        </TableRow>
-
-        <TableRow className={[s.tr]}>
-            <HeadCell className={[s.th]}></HeadCell>
-            <HeadCell className={[s.th]}></HeadCell>
-            <HeadCell colSpan={Object.keys(columns).length - 1} className={[s.th]}>
-                <SizeBox disabled style={null}>
-                    <MyInput {...{
-                        name: "globalFilter",
-                        //value: "",
-                        onChange: emitGlobalFilter
-                    }} />
-                </SizeBox>
-            </HeadCell>
-        </TableRow>
-    </>
+    </TableRow>
 }
 
 
 
 Filter.propTypes = {
     emitFilter: PropTypes.func,
-    emitGlobalFilter: PropTypes.func
+
 }
 
 Filter.defeultProps = {
     columns: {},
-    emitFilter: null,
-    emitGlobalFilter: null
+    emitFilter: null
 }
 
 export default Filter
