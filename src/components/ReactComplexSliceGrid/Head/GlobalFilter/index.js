@@ -4,7 +4,10 @@ import PropTypes from 'prop-types'
 import TableRow from '../../TableRow'
 import { HeadCell } from '../../Cells'
 import SizeBox from '../../SizeBox'
+
+// Components
 import MyInput from '../../../MyInput'
+import ContentEditable from '../../../ContentEditable'
 
 import CanUseDOM from '../../../../functions/CanUseDOM'
 
@@ -19,11 +22,17 @@ const GlobalFilter = (props) => {
        
         <HeadCell colSpan={Object.keys(columns).length } className={[s.th]}>
             <SizeBox disabled style={null}>
-                <MyInput {...{
+                {/*<MyInput {...{
                     name: "globalFilter",
                     //value: "",
                     onChange: emitGlobalFilter
-                }} />
+                }} />*/}
+
+                <ContentEditable {...{
+                    name: "globalFilter",
+                    //value: "",
+                    onChange: emitGlobalFilter
+                }}/>
             </SizeBox>
         </HeadCell>
     </TableRow>

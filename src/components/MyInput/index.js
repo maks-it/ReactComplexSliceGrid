@@ -1,40 +1,40 @@
 import React, { useEffect, useState } from 'react'
+import PropTypes from 'prop-types'
+
 import {Editor, EditorState, ContentState} from 'draft-js';
+
 
 const MyInput = (props) => {
     const { name, value, onChange } = props
-    const [editorState, setEditorState] = useState(() => /*EditorState.createWithContent(ContentState.createFromText(value || ''))) */ EditorState.createEmpty())
+    const [editorState, setEditorState] = useState(() => EditorState.createWithContent(ContentState.createFromText(value))) // EditorState.createEmpty())
 
     const [enabled, setEnabled] = useState(false)
 
     useEffect(() => {
-        
-        if(value && !enabled) {
-            setEditorState(() => EditorState.createWithContent(ContentState.createFromText(value)))
-        }
-        
+        if(!enabled) setEditorState(() => EditorState.createWithContent(ContentState.createFromText(value)))
     }, [value])
 
   
-    return <Editor editorState={editorState}
-        onChange={(editorState) => {
-            setEditorState(editorState)
+    return <div onClick={() => setEnabled(true)} onBlur={() => setEnabled(false)}>
+        {!enabled
+            ? <div dangerouslySetInnerHTML ={{__html: value === '' ? '&nbsp;' : value }}
+                style = {{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}></div>
+            : <Editor editorState={editorState} enabled={enabled}
+                onChange={(editorState) => {
+                    setEditorState(editorState)
 
-            //const newVal =  editorState.getCurrentContent().getPlainText('\u0001')
-            // if(newVal !== value) {
-                onChange({
-                    target: {
-                        name: name,
-                        value: editorState.getCurrentContent().getPlainText('\u0001')
-                    }
-                })
-            // }
+                    onChange({
+                        target: {
+                            name: name,
+                            value: editorState.getCurrentContent().getPlainText('\u0001')
+                        }
+                    })
+                }} />}
+        </div>
+  }
 
-            
-        }}
-        
-        onFocus={() => setEnabled(true)}
-        onBlur={() => setEnabled(false)} />
+  MyInput.defaultProps = {
+      value: ''
   }
 
   export default MyInput

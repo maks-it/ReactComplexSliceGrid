@@ -4,7 +4,10 @@ import PropTypes from 'prop-types'
 import TableRow from '../../TableRow'
 import { HeadCell } from '../../Cells'
 import SizeBox from '../../SizeBox'
+
+// Components
 import MyInput from '../../../MyInput'
+import ContentEditable from '../../../ContentEditable'
 
 
 import CanUseDOM from '../../../../functions/CanUseDOM'
@@ -31,9 +34,16 @@ const Filter = (props) => {
                     return <HeadCell key={colIndex} className={[s.th]} scope="col">
                         <SizeBox disabled style={sizeBoxStyle}>
                             
-                            <MyInput {...{
+                            {/*<MyInput {...{
                                 name: colName,
                                 //value: "", //columns[colName].filterText ? columns[colName].filterText: "",
+                                onChange: emitFilter
+                            }} />*/}
+
+
+                            <ContentEditable {...{
+                                name: colName,
+                                value: columns[colName].filterText ? columns[colName].filterText: "",
                                 onChange: emitFilter
                             }} />
                         </SizeBox>

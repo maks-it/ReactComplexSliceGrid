@@ -602,7 +602,7 @@ const ComplexGrid = (props) => {
     onMouseUp={handleTouchEnd}
     
 
-    onContextMenu={handleContextMenu}>
+    /*onContextMenu={handleContextMenu}*/>
 
     {/* Scroll Bars */}
     {!IsTouchDevice2() ? <>

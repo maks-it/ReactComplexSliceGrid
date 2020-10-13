@@ -28,6 +28,7 @@ import SizeBox from '../SizeBox'
 
 // Components
 import MyInput from '../../MyInput'
+import ContentEditable from '../../ContentEditable'
 
 import { DeepMerge } from '../../../functions/Deep'
 import CanUseDOM from '../../../functions/CanUseDOM'
@@ -68,18 +69,6 @@ const Body = (props) => {
                 </SizeBox>
               </BodyCell>
 
-            case 'string':
-            case 'number':
-              return <BodyCell key={colIndex} className={[s.td]}>
-                <SizeBox name={colName} disabled style={sizeBoxStyle}>
-                  <MyInput {...{
-                      name: colName,
-                      value: row[colName]?.toString(),
-                      onChange: (e) => emitChange(e, row.id)
-                  }} />
-                </SizeBox>
-              </BodyCell>
-
             case 'date-time':
               return <BodyCell key={colIndex} className={[s.td]}>
               <SizeBox name={colName} disabled style={sizeBoxStyle}>
@@ -89,10 +78,20 @@ const Body = (props) => {
             
             default:
               return <BodyCell key={colIndex} className={[s.td]}>
-                <SizeBox name={colName} disabled style={sizeBoxStyle}>
-                  {row[colName]}
-                </SizeBox>
-              </BodyCell>
+              <SizeBox name={colName} disabled style={sizeBoxStyle}>
+                {/*<MyInput {...{
+                    name: colName,
+                    value: row[colName]?.toString(),
+                    onChange: (e) => emitChange(e, row.id)
+                }} />*/}
+
+                <ContentEditable {...{
+                  name: colName,
+                  value: row[colName]?.toString(),
+                  onChange: (e) => emitChange(e, row.id)
+                }}/>
+              </SizeBox>
+            </BodyCell>
           }
         })}
       </TableRow>

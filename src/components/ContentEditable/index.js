@@ -21,9 +21,6 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import PropTypes from 'prop-types'
-import classNames from 'classnames'
-import EditCaretPositioning from '../../functions/EditCaretPositioning'
-
 
 const ContentEditable = (props) => {
   const { name, value, className, mode, onChange, ...others } = props
@@ -31,11 +28,58 @@ const ContentEditable = (props) => {
   const divRef = useRef(null)
 
   const [carretPosition, setCarretPosition] = useState(0)
-  const [isEditable, setEditable] = useState(mode === 'enabled' ? true : false)
+  const [enabled, setEnabled] = useState(false)
+
+  const RetreiveCarretPosition = (el) => {
+    var _range = window.getSelection().getRangeAt(0)
+    var range = _range.cloneRange()
+    range.selectNodeContents(el)
+    range.setEnd(_range.startContainer, _range.startOffset)
+    var start = range.toString().length
+  
+    return {
+      start: start,
+      end: start + _range.toString().length
+    }
+  }
+  
+  const UpdateCarretPosition = (el, carretPosition) => {
+    const range = document.createRange()
+    range.setStart(el, 0)
+    range.collapse(true)
+  
+    let charIndex = 0
+    let nodeStack = [el], node, foundStart = false, stop = false
+    while(!stop && (node = nodeStack.pop())) {
+      if (node.nodeType === 3) {
+        let nextCharIndex = charIndex + node.length
+        if (!foundStart && carretPosition.start >= charIndex && carretPosition.start <= nextCharIndex) {
+          range.setStart(node, carretPosition.start - charIndex)
+          foundStart = true
+        }
+        if (!foundStart && carretPosition.end >= charIndex && carretPosition.end <= nextCharIndex) {
+          range.setEnd(node, carretPosition.end - charIndex)
+          stop = true
+        }
+        charIndex = nextCharIndex
+      } else {
+        let i = node.childNodes.length
+        while (i--) {
+          nodeStack.push(node.childNodes[i])
+        }
+      }
+    }
+    
+    const sel = document.getSelection()
+    sel.removeAllRanges()
+    sel.addRange(range)
+  }
 
   // proxy handler
-  const emitChange = () => {
-    const { innerHTML } = divRef.current
+  const emitInput = (e) => {
+    const { innerHTML } = e.target
+
+    setCarretPosition(RetreiveCarretPosition(e.target))
 
     if (onChange && {}.toString.call(onChange) === '[object Function]') {
       // reassign target value
@@ -46,47 +90,43 @@ const ContentEditable = (props) => {
         }
       })
     }
-
-    // set internal component state
-    setCarretPosition(EditCaretPositioning.saveSelection(divRef.current))
-    // console.log(divRef.current)
   }
 
-  /*
+  const handleOutsideClick = (e) => {
+    if (divRef.current && !divRef.current.contains(e.target)) {
+      setEnabled(false)
+    }
+  }
+
   useEffect(() => {
+    window.addEventListener('mousedown', handleOutsideClick, false)
+    return () => {
+      window.removeEventListener('mousedown', handleOutsideClick)
+    }
+  }, [])
+  
+  useEffect(() => {
+    // check if enebled, as we do not want to fire this event for all content editable divs on the page
+    if (enabled) UpdateCarretPosition(divRef.current, carretPosition)
+  }, [carretPosition, enabled])
 
-  }, [carretPosition])
-  */
+  return <div ref={divRef} {...others}
+    style = {!enabled ? { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } : { outline: '0px solid transparent' }}
+    onInput={emitInput}
+    onClick={() => setEnabled(true)}
 
-  return <div ref={divRef} {...others} className={classNames(className)}
-    onInput={emitChange}
-    onBlur={() => {
-      // Execute a JavaScript when a user leaves an input field
-    }}
-    onKeyUp={() => {
-      EditCaretPositioning.restoreSelection(divRef.current, carretPosition)
-    }}
-
-    contentEditable
-    dangerouslySetInnerHTML={{ __html: value }}
-      /*onDoubleClick={mode === 'auto' ? () => setEditable(true) : null }
-      onMouseLeave={mode === 'auto' ? () => setEditable(false) : null } */>
-  </div>
+    contentEditable={enabled}
+    dangerouslySetInnerHTML={{ __html: !enabled && value === '' ? '&nbsp;' : value }} />
 }
 
 ContentEditable.defaultProps = {
-  value: "",
-  mode: 'enabled' // 'disabled' || 'auto'
+  value: '',
 }
 
 ContentEditable.propTypes = {
   name: PropTypes.string.isRequired,
-  value: PropTypes.oneOfType([
-    PropTypes.string,
-    PropTypes.number
-  ]),
+  value: PropTypes.string,
   className: PropTypes.array,
-  mode: PropTypes.string,
   onChange: PropTypes.func.isRequired
 }
 
