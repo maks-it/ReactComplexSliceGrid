@@ -20,7 +20,7 @@ const GlobalFilter = (props) => {
     return <TableRow className={[s.tr]}>
         <HeadCell className={[s.th]}><i className="fas fa-search"></i></HeadCell>
        
-        <HeadCell colSpan={Object.keys(columns).length } className={[s.th]}>
+        <HeadCell colSpan={Object.keys(columns).length } className={[s.thEditable]}>
             <SizeBox disabled style={null}>
                 {/*<MyInput {...{
                     name: "globalFilter",

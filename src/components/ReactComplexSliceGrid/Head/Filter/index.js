@@ -31,7 +31,7 @@ const Filter = (props) => {
                 case 'row-select':
                     return <HeadCell key={colIndex} className={[s.th]} scope="col"></HeadCell>
                 default:
-                    return <HeadCell key={colIndex} className={[s.th]} scope="col">
+                    return <HeadCell key={colIndex} className={[s.thEditable]} scope="col">
                         <SizeBox disabled style={sizeBoxStyle}>
                             
                             {/*<MyInput {...{

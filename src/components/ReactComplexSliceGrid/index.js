@@ -390,8 +390,8 @@ const ComplexGrid = (props) => {
       let hasFilter = false
 
       Object.keys(columns).filter(colName => colName !=='id').forEach(colName => {
-        const filterText = columns[colName].filterText
-        const text = item[colName] ? item[colName].toString() : ''
+        const filterText = columns[colName].filterText.toLowerCase()
+        const text = item[colName] ? item[colName].toString().toLowerCase() : ''
 
         if(filterText !== '') {
           hasFilter = true
@@ -416,6 +416,7 @@ const ComplexGrid = (props) => {
    * Multiple columns filter
    */
   const globalFilterItems = (items, columns, filterText) => {
+    filterText = filterText.toLowerCase()
     const newItems = []
 
     for(let i = 0, len = items.length; i < len; i++) {
@@ -424,7 +425,8 @@ const ComplexGrid = (props) => {
 
       if(filterText !== '') {
         Object.keys(columns).filter(colName => colName !=='id').forEach(colName => {
-          if(item[colName] && item[colName].toString().includes(filterText)) {
+          const text = item[colName] ? item[colName].toString().toLowerCase() : ''
+          if(text.indexOf(filterText)) {
             found = true
           }
         })

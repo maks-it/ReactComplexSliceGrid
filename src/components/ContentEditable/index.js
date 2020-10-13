@@ -30,6 +30,13 @@ const ContentEditable = (props) => {
   const [carretPosition, setCarretPosition] = useState(0)
   const [enabled, setEnabled] = useState(false)
 
+  /**
+   * 
+   * @param {*} el 
+   * 
+   * https://developer.mozilla.org/en-US/docs/Web/API/Range
+   * https://developer.mozilla.org/en-US/docs/Web/API/Selection
+   */
   const RetreiveCarretPosition = (el) => {
     var _range = window.getSelection().getRangeAt(0)
     var range = _range.cloneRange()
@@ -43,6 +50,13 @@ const ContentEditable = (props) => {
     }
   }
   
+  /**
+   * @param {node} el 
+   * @param {object} carretPosition
+   * 
+   * https://developer.mozilla.org/en-US/docs/Web/API/Range
+   * https://developer.mozilla.org/en-US/docs/Web/API/Selection
+   */
   const UpdateCarretPosition = (el, carretPosition) => {
     const range = document.createRange()
     range.setStart(el, 0)
