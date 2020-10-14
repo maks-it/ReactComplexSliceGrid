@@ -1,37 +1,28 @@
+// React
 import React from 'react'
 import PropTypes from 'prop-types'
 
-import TableRow from '../../TableRow'
-import { HeadCell } from '../../Cells'
-import SizeBox from '../../SizeBox'
+// Table components
+import TableRow from '../TableRow'
+import { HeadCell } from '../Cells'
+import SizeBox from '../SizeBox'
 
 // Components
-import MyInput from '../../../MyInput'
-import ContentEditable from '../../../ContentEditable'
-
-import CanUseDOM from '../../../../functions/CanUseDOM'
-
-// CSS Modulses Server Side Prerendering
-const s = CanUseDOM() ? require('./scss/style.module.scss') : require('./scss/style.module.scss.json')
+import ContentEditable from '../../ContentEditable'
 
 const GlobalFilter = (props) => {
-    const { columns, emitGlobalFilter } = props
+    const { s, showFilters, columns, globalFilterText, emitGlobalFilter } = props
 
-    return <TableRow className={[s.tr]}>
+    return <TableRow className={[s.tr, showFilters ? s.show : null]}>
         <HeadCell className={[s.th]}><i className="fas fa-search"></i></HeadCell>
        
         <HeadCell colSpan={Object.keys(columns).length } className={[s.thEditable]}>
             <SizeBox disabled style={null}>
-                {/*<MyInput {...{
-                    name: "globalFilter",
-                    //value: "",
-                    onChange: emitGlobalFilter
-                }} />*/}
-
                 <ContentEditable {...{
                     name: "globalFilter",
-                    //value: "",
+                    value: globalFilterText,
                     onChange: emitGlobalFilter
+                    // onLeave: (e) => console.log(e)
                 }}/>
             </SizeBox>
         </HeadCell>

@@ -21,14 +21,21 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import PropTypes from 'prop-types'
+import className from 'classnames'
 
 const ContentEditable = (props) => {
-  const { name, value, className, mode, onChange, ...others } = props
+  const { name, value, className, mode, onChange, onLeave, ...others } = props
 
   const divRef = useRef(null)
 
   const [carretPosition, setCarretPosition] = useState(0)
-  const [enabled, setEnabled] = useState(false)
+
+  const [enabled, _setEnabled] = useState(false)
+  const enabledRef = useRef(enabled)
+  const setEnabled = (data) => {
+    enabledRef.current = data
+    _setEnabled(data)
+  }
 
   /**
    * 
@@ -89,8 +96,8 @@ const ContentEditable = (props) => {
     sel.addRange(range)
   }
 
-  // proxy handler
-  const emitInput = (e) => {
+  // proxy handlers
+  const _onInput = (e) => {
     const { innerHTML } = e.target
 
     setCarretPosition(RetreiveCarretPosition(e.target))
@@ -107,15 +114,21 @@ const ContentEditable = (props) => {
   }
 
   const handleOutsideClick = (e) => {
-    if (divRef.current && !divRef.current.contains(e.target)) {
+    if (enabledRef.current && divRef.current && !divRef.current.contains(e.target)) {
+      if (onLeave && {}.toString.call(onLeave) === '[object Function]') {
+        onLeave({
+          target: divRef.current
+        })
+      }
       setEnabled(false)
+      
     }
   }
 
   useEffect(() => {
-    window.addEventListener('mousedown', handleOutsideClick, false)
+    window.addEventListener('click', handleOutsideClick, false)
     return () => {
-      window.removeEventListener('mousedown', handleOutsideClick)
+      window.removeEventListener('click', handleOutsideClick)
     }
   }, [])
   
@@ -124,24 +137,32 @@ const ContentEditable = (props) => {
     if (enabled) UpdateCarretPosition(divRef.current, carretPosition)
   }, [carretPosition, enabled])
 
-  return <div ref={divRef} {...others}
-    style = {!enabled ? { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } : { outline: '0px solid transparent' }}
-    onInput={emitInput}
-    onClick={() => setEnabled(true)}
+  return <div ref={divRef} 
+    {...{
+      contentEditable: enabled,
+      style: !enabled ? { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } : { outline: 'none' },
+      className: className,
 
-    contentEditable={enabled}
-    dangerouslySetInnerHTML={{ __html: !enabled && value === '' ? '&nbsp;' : value }} />
+      onInput: _onInput,
+      onClick: () => setEnabled(true),
+
+      dangerouslySetInnerHTML: { __html: !enabled && value === '' ? '&nbsp;' : value }
+    }}  
+
+    {...others} />
 }
 
 ContentEditable.defaultProps = {
   value: '',
+  onLeave: null
 }
 
 ContentEditable.propTypes = {
   name: PropTypes.string.isRequired,
   value: PropTypes.string,
-  className: PropTypes.array,
-  onChange: PropTypes.func.isRequired
+  className: PropTypes.string,
+  onChange: PropTypes.func.isRequired,
+  onLeave: PropTypes.func
 }
 
 export default ContentEditable

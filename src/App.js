@@ -36,13 +36,13 @@ return <div style={{/*padding: '0px 100px'*/}}>
     <ComplexGrid {...{
       items: items,
       columns: {
-        id: { type: 'row-select' },
-        firstName: { title: 'First Name', type: 'string' },
-        lastName: { title: 'Last Name', type: 'string' },
-        age: { title: 'Age', type: 'number' },
-        visits: { title: 'Visits', type: 'number' },
-        progress: { title: 'Progress', type: 'number' },
-        status: { title: 'Status', type: 'string' },
+        id: { dataType: 'row-select' },
+        firstName: { title: 'First Name', dataType: 'string' },
+        lastName: { title: 'Last Name', dataType: 'string' },
+        age: { title: 'Age', dataType: 'number' },
+        visits: { title: 'Visits', dataType: 'number' },
+        progress: { title: 'Progress', dataType: 'number' },
+        status: { title: 'Status', dataType: 'string' },
         subRows: { title: 'Sub Rows' }
       },
       onSelect: (ids) => {

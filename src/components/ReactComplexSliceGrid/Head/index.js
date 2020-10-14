@@ -26,34 +26,41 @@ import TableRow from '../TableRow'
 import { HeadCell } from '../Cells'
 import SizeBox from '../SizeBox'
 import Filter from './Filter'
+import GlobalFilter from './GlobalFilter'
+
 import SortIndicator from './SortIndicator'
 
 import CanUseDOM from '../../../functions/CanUseDOM'
-import GlobalFilter from './GlobalFilter'
+
 
 // CSS Modulses Server Side Prerendering
 const s = CanUseDOM() ? require('./scss/style.module.scss') : require('./scss/style.module.scss.json')
 
 const Head = (props) => {
-  const { columns, selected, emitSlect, emitSort, emitFilter, emitGlobalFilter } = props
+  const { globalFilterText, columns, selected, emitSlect, emitSort, emitFilter, emitGlobalFilter } = props
 
-
+  const[showFilters, toggleShowFilters] = useState(false)
 
   return <thead className={s.thead}>
     <GlobalFilter {...{
+      s: s,
+      showFilters: showFilters,
       columns: columns,
+      globalFilterText: globalFilterText,
       emitGlobalFilter: emitGlobalFilter
     }} />
 
-    <TableRow className={[s.tr]}>
-
-      <HeadCell className={[s.th]} scope="col"><SizeBox disabled>#</SizeBox></HeadCell>
+    <TableRow className={[s.tr, s.show]}>
+      <HeadCell className={[s.th]} scope="col"
+        emitDoubleCLick={() => toggleShowFilters(!showFilters)}>
+        <SizeBox disabled>#</SizeBox>
+      </HeadCell>
 
       {Object.keys(columns).map((colName, index) => {
         const sizeBoxStyle = columns[colName].__style || {}
         // if (Object.keys(sizeBoxStyle).length !== 0 ) console.log(sizeBoxStyle)
 
-        switch (columns[colName]?.type) {
+        switch (columns[colName]?.dataType) {
           case 'row-select':
             return <HeadCell key={index} className={[s.th]} scope="col">
               <SizeBox disabled>
@@ -75,6 +82,8 @@ const Head = (props) => {
     </TableRow>
 
     <Filter {...{
+      s: s,
+      showFilters: showFilters,
       columns: columns,
       emitFilter: emitFilter
     }} />

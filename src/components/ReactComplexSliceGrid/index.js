@@ -19,7 +19,7 @@
  * THIS SOFTWARE.
  */
 
-import React, { useEffect, useState, useLayoutEffect, useRef, memo } from 'react'
+import React, { useEffect, useState, useRef, memo } from 'react'
 import PropTypes from 'prop-types'
 
 // Table components
@@ -28,20 +28,11 @@ import Body from './Body'
 import { HScrollBar, VScrollBar } from './ScrollBars'
 import ContextMenu from './ContextMenu'
 
-// Components
-import MyInput from '../MyInput'
-
-// Hooks
-import { useLongPress } from '../../hooks'
-
 // Functions
-import { DeepCopy, DeepMerge } from '../../functions/Deep'
+import { DeepCopy } from '../../functions/Deep'
 import CanUseDOM from '../../functions/CanUseDOM'
 import PickObjectProps from '../../functions/PickObjectProps'
 import { OffsetIndex } from '../../functions/Arrays'
-import { IsTouchDevice2 } from '../../functions/TouchLib'
-import { IsEqual, GetDelta } from '../../functions/Arrays/Delta'
-import { createPortal } from 'react-dom'
 
 // CSS Modulses Server Side Prerendering
 const s = CanUseDOM() ? require('./scss/style.module.scss') : require('./scss/style.module.scss.json')
@@ -145,30 +136,45 @@ const ComplexGrid = (props) => {
    */
   // arrow keys scrolling and tabulation
   const handleKeyDown = (e) => {
-    if (['ArrowDown'].includes(e.key)) {
+    const { key, target } = e
+
+    /*
+    if (['ArrowDown'].includes(key)) {
       e.preventDefault()
       const max = innerItemsRef.current.length - 1
       setSlicer(slicerRef.current + 1 > max ? max : slicerRef.current + 1)
     }
 
-    if (['ArrowUp'].includes(e.key)) {
+    if (['ArrowUp'].includes(key)) {
       e.preventDefault()
       setSlicer(slicerRef.current - 1 < 0 ? 0 : slicerRef.current - 1)
     }
 
-    if (['ArrowRight'].includes(e.key)) {
+    if (['ArrowRight'].includes(key)) {
       e.preventDefault()
       const max = innerColumnsRef.current.length - 1
       setHSlicer(hSlicerRef.current + 1 > max ? max : hSlicerRef.current + 1)
     }
 
-    if (['ArrowLeft'].includes(e.key)) {
+    if (['ArrowLeft'].includes(key)) {
       e.preventDefault()
       setHSlicer(hSlicerRef.current - 1 < 0 ? 0 : hSlicerRef.current - 1)
     }
+    */
 
-    if(['Tab'].includes(e.key)) {
-      // e.preventDefault()
+    if(['Tab'].includes(key)) {
+      e.preventDefault()
+
+      const tabIndex  = +(target.getAttribute('tabindex')) +1
+      
+      const elems = document.querySelectorAll('[contenteditable]')
+      for (let i = 0, len = elems.length; i < len; i++) {
+        var nextTabIndex = +(elems[i].getAttribute('tabindex'))
+        if (nextTabIndex === tabIndex) elems[i].click()
+      }
+      //const max = innerColumnsRef.current.length - 1
+      //setHSlicer(hSlicerRef.current + 1 > max ? max : hSlicerRef.current + 1)
+      //target.focus()
     }
   }
 
@@ -180,7 +186,9 @@ const ComplexGrid = (props) => {
     // e.wheelDelta (most cases) and e.detail (firefox cases)
     const delta = e.wheelDelta ? e.wheelDelta / 120 : e.detail ? -e.detail / 2 : 0
 
-    setSlicer(slicerRef.current - delta < 0 ? 0 : slicerRef.current - delta)
+    setSlicer(slicerRef.current - delta < 0 ? 0
+      : slicerRef.current - delta < innerItemsRef.current.length
+      ? slicerRef.current - delta : innerItemsRef.current.length - 1 )
   }
 
   /*
@@ -195,7 +203,7 @@ const ComplexGrid = (props) => {
     // console.log(reactHandler) // React Event handler object and Properties
     // const { name } = reactHandler
     const target = e.touches && e.touches[0] ? e.touches[0].target : e.target
-    const type = target.getAttribute('type')
+    const inputType = target.getAttribute('type')
 
     const newState = {
       startPosX: e.touches ? e.touches[0].screenX : e.screenX,
@@ -203,17 +211,17 @@ const ComplexGrid = (props) => {
       startTime: new Date()
     }
 
-    if (type) {
-      newState.touchAction = type
-      console.log(`Complex Grid: start touch ${type}`)
+    if (inputType) {
+      newState.touchAction = inputType
+      console.log(`Complex Grid: start touch ${inputType}`)
     }
 
-    if (['colSwap', 'rowSwap'].includes(type)) {
+    if (['colSwap', 'rowSwap'].includes(inputType)) {
       newState.sizeBoxProps = {
         row: parseInt(target.getAttribute('row')),
         name: target.getAttribute('name')
       }
-    } else if (['colResizer', 'rowResizer'].includes(type)) {
+    } else if (['colResizer', 'rowResizer'].includes(inputType)) {
       // newState.sizeBoxProps = DeepMerge(Object.keys(e.target.parentNode).filter(key => key.indexOf('__reactEventHandlers') >= 0).map(key => e.target.parentNode[key]).shift(), {
       //   height: e.target.parentNode.offsetHeight, // extensible problem
       //  width: e.target.parentNode.offsetWidth // extensible problem
@@ -247,8 +255,6 @@ const ComplexGrid = (props) => {
   }
 
   const handleTouchMove = (e) => {
-    e.preventDefault()
-
     const mouseX = e.touches ? e.touches[0].screenX : e.screenX
     const mouseY = e.touches ? e.touches[0].screenY : e.screenY
 
@@ -296,8 +302,10 @@ const ComplexGrid = (props) => {
         deltaY = Math.round(deltaY / 100)
         deltaX = Math.round(deltaX / 100)
       }
-
-      setSlicer(slicerRef.current - deltaY < 0 ? 0 : slicerRef.current - deltaY)
+      
+      setSlicer(slicerRef.current - deltaY < 0 ? 0
+        : slicerRef.current - deltaY < innerItemsRef.current.length
+        ? slicerRef.current - deltaY : innerItemsRef.current.length - 1)
       setHSlicer(hSlicerRef.current - deltaX < 0 ? 0 : hSlicerRef.current - deltaX)
     }
 
@@ -426,7 +434,7 @@ const ComplexGrid = (props) => {
       if(filterText !== '') {
         Object.keys(columns).filter(colName => colName !=='id').forEach(colName => {
           const text = item[colName] ? item[colName].toString().toLowerCase() : ''
-          if(text.indexOf(filterText)) {
+          if(text.indexOf(filterText) > -1) {
             found = true
           }
         })
@@ -449,7 +457,7 @@ const ComplexGrid = (props) => {
     Object.keys(columns).forEach(colName => {
       criteria.push({
         key: colName,
-        type: columns[colName].type,
+        dataType: columns[colName].dataType,
         dir: columns[colName].sortDir
       })
     })
@@ -494,10 +502,10 @@ const ComplexGrid = (props) => {
       
       for(let i = 0, len = criteria.length; i < len; i++) {
         const k = criteria[i].key
-        const type = criteria[i].type
+        const dataType = criteria[i].dataType
         const dir = criteria[i].dir === 'asc' ? 1 : criteria[i].dir === 'desc' ? -1 : 0
         
-        switch(type) {
+        switch(dataType) {
           case 'string':
             results.push(sortStr(a[k], b[k], dir))
           break
@@ -517,6 +525,8 @@ const ComplexGrid = (props) => {
       return results.reduce((sum, result) => sum || result, 0)
     })
   }
+
+
 
   /*
    * Lifecycle methods
@@ -583,6 +593,13 @@ const ComplexGrid = (props) => {
     }
   }, [items])
 
+  useEffect(() => {
+    const elems = document.querySelectorAll('[contenteditable]')
+    for (let i = 0, len = elems.length; i < len; i++) {
+      elems[i].tabIndex = i
+    }
+  }, [innerItems, innerColumns, slicer, hSlicer])
+
   if (!(items.length > 0)) {
     return <div className={`${s.container}`}><div>No Data</div></div>
   }
@@ -591,9 +608,7 @@ const ComplexGrid = (props) => {
    * Implementation
    */
   return <div ref={containerRef} className={`${s.container}`} style={viewPortState}
-    /*onKeyDown={handleKeyDown}*/
-
-    // touch scrolling events
+    onKeyDown={handleKeyDown}
 
     onTouchStart={handleTouchStart}
     onTouchMove={handleTouchMove}
@@ -602,12 +617,10 @@ const ComplexGrid = (props) => {
     onMouseDown={handleTouchStart}
     onMouseMove={handleTouchMove}
     onMouseUp={handleTouchEnd}
-    
 
     /*onContextMenu={handleContextMenu}*/>
 
     {/* Scroll Bars */}
-    {!IsTouchDevice2() ? <>
     <VScrollBar style={{
       width: viewPortState.height
     }} value={slicer} min={0} max={innerItems.length - 1} step={1} onChange={(e) => {
@@ -616,13 +629,14 @@ const ComplexGrid = (props) => {
 
     <HScrollBar value={hSlicer} min={0} max={Object.keys(innerColumns).length - 1} step={1} onChange={(e) => {
       setHSlicer(parseInt(e.target.value))
-    }} /></> : ''}
+    }} />
 
     {/* Table */}
     <table ref={tableRef} className={`${s.complexGrid}`}>
       {/* <caption>{caption}</caption> */}
 
       <Head {...{
+        globalFilterText: globalFilterText,
         columns: PickObjectProps(innerColumns, Object.keys(innerColumns).slice(hSlicer, hSlicer + 20)),
         selected: innerItems.length > 0 ? innerItems.reduce((sum, next) => sum && next.selected, true) : false,
         emitSlect: (selected) => {
@@ -633,7 +647,7 @@ const ComplexGrid = (props) => {
 
           // 1. callback
           if (onSelect && {}.toString.call(onSelect) === '[object Function]') {
-            const colName = Object.keys(innerColumns).filter(colName => innerColumns[colName]?.type === 'row-select').shift()
+            const colName = Object.keys(innerColumns).filter(colName => innerColumns[colName]?.dataType === 'row-select').shift()
             onSelect(newItems.filter(row => row.selected).map(row => row[colName]))
           }
 
@@ -716,7 +730,7 @@ const ComplexGrid = (props) => {
 
           // 1. callback
           if (onSelect && {}.toString.call(onSelect) === '[object Function]') {
-            const colName = Object.keys(innerColumns).filter(colName => innerColumns[colName]?.type === 'row-select').shift()
+            const colName = Object.keys(innerColumns).filter(colName => innerColumns[colName]?.dataType === 'row-select').shift()
             onSelect(innerItems.filter(row => row.selected).map(row => row[colName]))
           }
 

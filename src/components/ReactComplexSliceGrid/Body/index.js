@@ -45,7 +45,7 @@ const Body = (props) => {
       return <TableRow key={rowIndex} className={[s.tr]}>
 
         <HeadCell scope="row" className={[s.th]}>
-          <SizeBox type="rowSwap" row={rowIndex} colDisabled style={row.__style || {}}>
+          <SizeBox type="rowSwap" row={rowIndex} disabled style={row.__style || {}}>
             {rowIndex + 1}
           </SizeBox>
         </HeadCell>
@@ -54,7 +54,7 @@ const Body = (props) => {
           const sizeBoxStyle = DeepMerge(columns[colName].__style || {}, row.__style || {})
           // if (Object.keys(sizeBoxStyle).length !== 0 ) console.log(sizeBoxStyle)
 
-          switch (columns[colName]?.type) {
+          switch (columns[colName]?.dataType) {
             case 'row-select':
               return <BodyCell key={colIndex} className={[s.td]}>
                 <SizeBox disabled style={row.__style || {}}>
@@ -79,16 +79,11 @@ const Body = (props) => {
             default:
               return <BodyCell key={colIndex} className={[s.td]}>
               <SizeBox name={colName} disabled style={sizeBoxStyle}>
-                {/*<MyInput {...{
-                    name: colName,
-                    value: row[colName]?.toString(),
-                    onChange: (e) => emitChange(e, row.id)
-                }} />*/}
-
                 <ContentEditable {...{
                   name: colName,
                   value: row[colName]?.toString(),
                   onChange: (e) => emitChange(e, row.id)
+                  // onLeave: (e) => console.log(e)
                 }}/>
               </SizeBox>
             </BodyCell>
