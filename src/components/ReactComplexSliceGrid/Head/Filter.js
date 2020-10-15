@@ -26,6 +26,7 @@ const Filter = (props) => {
                     return <HeadCell key={colIndex} className={[s.thEditable]} scope="col">
                         <SizeBox disabled style={sizeBoxStyle}>
                             <ContentEditable {...{
+                                type: 'filter',
                                 name: colName,
                                 value: columns[colName].filterText ? columns[colName].filterText: "",
                                 onChange: emitFilter

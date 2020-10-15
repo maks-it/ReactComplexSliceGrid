@@ -32,16 +32,22 @@ import ContentEditable from '../../ContentEditable'
 
 import { DeepMerge } from '../../../functions/Deep'
 import CanUseDOM from '../../../functions/CanUseDOM'
+import { VScrollBar } from '../ScrollBars'
 
 // CSS Modulses Server Side Prerendering
 const s = CanUseDOM() ? require('./scss/style.module.scss') : require('./scss/style.module.scss.json')
 
 const Body = (props) => {
-  const { columns, items, chunk, emitSlect, emitChange } = props
+  const { columns, items, vSlicer, hSlicer, maxCols, maxRows, emitSlect, emitChange } = props
+
+  const visibleColumns = Object.keys(columns).slice(hSlicer, hSlicer + maxCols)
+  const visibleItems = items.slice(vSlicer, vSlicer + maxRows)
+
+  let tabIndex = null
 
   return <tbody className={s.tbody}>
-    {items.map((row, rowIndex) => {
-      rowIndex = rowIndex + chunk
+    {visibleItems.map((row, rowIndex) => {
+      rowIndex = rowIndex + vSlicer
       return <TableRow key={rowIndex} className={[s.tr]}>
 
         <HeadCell scope="row" className={[s.th]}>
@@ -51,6 +57,19 @@ const Body = (props) => {
         </HeadCell>
 
         {Object.keys(columns).map((colName, colIndex) => {
+
+          // retreive initial tabindex, then increment
+          if(!tabIndex) {
+            tabIndex = (rowIndex * visibleColumns.length) + colIndex
+          } else {
+            tabIndex++
+          }
+
+          // render only visible columns
+          if(!visibleColumns.includes(colName)) {
+            return null
+          }
+          
           const sizeBoxStyle = DeepMerge(columns[colName].__style || {}, row.__style || {})
           // if (Object.keys(sizeBoxStyle).length !== 0 ) console.log(sizeBoxStyle)
 
@@ -58,7 +77,7 @@ const Body = (props) => {
             case 'row-select':
               return <BodyCell key={colIndex} className={[s.td]}>
                 <SizeBox disabled style={row.__style || {}}>
-                  <input type="checkbox" checked={row.selected} onChange={() => emitSlect(row.id)}/>
+                  <input type="checkbox" tabIndex={tabIndex} checked={row.selected} onChange={() => emitSlect(row.id)}/>
                 </SizeBox>
               </BodyCell>
 
@@ -80,6 +99,7 @@ const Body = (props) => {
               return <BodyCell key={colIndex} className={[s.td]}>
               <SizeBox name={colName} disabled style={sizeBoxStyle}>
                 <ContentEditable {...{
+                  tabIndex: tabIndex,
                   name: colName,
                   value: row[colName]?.toString(),
                   onChange: (e) => emitChange(e, row.id)

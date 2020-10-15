@@ -38,7 +38,7 @@ import { OffsetIndex } from '../../functions/Arrays'
 const s = CanUseDOM() ? require('./scss/style.module.scss') : require('./scss/style.module.scss.json')
 
 const ComplexGrid = (props) => {
-  const { caption, items, maxRows, columns, onSelect, onSort, onFilter, onGlobalFilter, onChange } = props
+  const { caption, items, maxRows, maxCols, columns, onSelect, onSort, onFilter, onGlobalFilter, onChange } = props
 
   /*
    * Refs
@@ -82,11 +82,11 @@ const ComplexGrid = (props) => {
   }
 
   // vertical range slider value (vertical scroll bar replacement)
-  const [slicer, _setSlicer] = useState(0)
-  const slicerRef = useRef(slicer)
-  const setSlicer = (data) => {
-    slicerRef.current = data
-    _setSlicer(data)
+  const [vSlicer, _setVSlicer] = useState(0)
+  const vSlicerRef = useRef(vSlicer)
+  const setVSlicer = (data) => {
+    vSlicerRef.current = data
+    _setVSlicer(data)
   }
 
   // horizontal range slider value (horizontal scroll bar replacement)
@@ -142,12 +142,12 @@ const ComplexGrid = (props) => {
     if (['ArrowDown'].includes(key)) {
       e.preventDefault()
       const max = innerItemsRef.current.length - 1
-      setSlicer(slicerRef.current + 1 > max ? max : slicerRef.current + 1)
+      setSlicer(vSlicerRef.current + 1 > max ? max : vSlicerRef.current + 1)
     }
 
     if (['ArrowUp'].includes(key)) {
       e.preventDefault()
-      setSlicer(slicerRef.current - 1 < 0 ? 0 : slicerRef.current - 1)
+      setSlicer(vSlicerRef.current - 1 < 0 ? 0 : vSlicerRef.current - 1)
     }
 
     if (['ArrowRight'].includes(key)) {
@@ -165,13 +165,35 @@ const ComplexGrid = (props) => {
     if(['Tab'].includes(key)) {
       e.preventDefault()
 
-      const tabIndex  = +(target.getAttribute('tabindex')) +1
-      
-      const elems = document.querySelectorAll('[contenteditable]')
-      for (let i = 0, len = elems.length; i < len; i++) {
-        var nextTabIndex = +(elems[i].getAttribute('tabindex'))
-        if (nextTabIndex === tabIndex) elems[i].click()
+      //const seach = () => {
+        const tabIndex  = +(target.getAttribute('tabindex')) + 1
+        const elems = document.querySelectorAll('[tabindex]')
+
+        for (let i = 0, len = elems.length; i < len; i++) {
+          const nextTabIndex = +(elems[i].getAttribute('tabindex'))
+          if (nextTabIndex === tabIndex) {
+            //setHSlicer(hSlicer + 1)
+
+            if(elems[i].getAttribute('contenteditable')) {
+              elems[i].click()
+            } else {
+              elems[i].focus()
+            }
+
+            //return true
+          }
+        }
+
+        //return false
+      //}
+/*
+      if(!seach()) {
+          setHSlicer(0)
+          setVSlicer(vSlicer + 1)
+
+          seach()
       }
+      */
       //const max = innerColumnsRef.current.length - 1
       //setHSlicer(hSlicerRef.current + 1 > max ? max : hSlicerRef.current + 1)
       //target.focus()
@@ -186,9 +208,9 @@ const ComplexGrid = (props) => {
     // e.wheelDelta (most cases) and e.detail (firefox cases)
     const delta = e.wheelDelta ? e.wheelDelta / 120 : e.detail ? -e.detail / 2 : 0
 
-    setSlicer(slicerRef.current - delta < 0 ? 0
-      : slicerRef.current - delta < innerItemsRef.current.length
-      ? slicerRef.current - delta : innerItemsRef.current.length - 1 )
+    setVSlicer(vSlicerRef.current - delta < 0 ? 0
+      : vSlicerRef.current - delta < innerItemsRef.current.length
+      ? vSlicerRef.current - delta : innerItemsRef.current.length - 1 )
   }
 
   /*
@@ -303,10 +325,11 @@ const ComplexGrid = (props) => {
         deltaX = Math.round(deltaX / 100)
       }
       
-      setSlicer(slicerRef.current - deltaY < 0 ? 0
-        : slicerRef.current - deltaY < innerItemsRef.current.length
-        ? slicerRef.current - deltaY : innerItemsRef.current.length - 1)
-      setHSlicer(hSlicerRef.current - deltaX < 0 ? 0 : hSlicerRef.current - deltaX)
+      setVSlicer(vSlicerRef.current - deltaY < 0 ? 0
+        : vSlicerRef.current - deltaY < innerItemsRef.current.length
+        ? vSlicerRef.current - deltaY : innerItemsRef.current.length - 1)
+      
+        setHSlicer(hSlicerRef.current - deltaX < 0 ? 0 : hSlicerRef.current - deltaX)
     }
 
   }
@@ -594,11 +617,16 @@ const ComplexGrid = (props) => {
   }, [items])
 
   useEffect(() => {
+    /*
     const elems = document.querySelectorAll('[contenteditable]')
     for (let i = 0, len = elems.length; i < len; i++) {
-      elems[i].tabIndex = i
+      if(elems[i].getAttribute('type') === 'filter') {
+        elems[i].tabIndex = i
+      }
     }
-  }, [innerItems, innerColumns, slicer, hSlicer])
+    */
+
+  }, [innerItems, innerColumns, vSlicer, hSlicer])
 
   if (!(items.length > 0)) {
     return <div className={`${s.container}`}><div>No Data</div></div>
@@ -623,8 +651,8 @@ const ComplexGrid = (props) => {
     {/* Scroll Bars */}
     <VScrollBar style={{
       width: viewPortState.height
-    }} value={slicer} min={0} max={innerItems.length - 1} step={1} onChange={(e) => {
-      setSlicer(parseInt(e.target.value))
+    }} value={vSlicer} min={0} max={innerItems.length - 1} step={1} onChange={(e) => {
+      setVSlicer(parseInt(e.target.value))
     }}/> 
 
     <HScrollBar value={hSlicer} min={0} max={Object.keys(innerColumns).length - 1} step={1} onChange={(e) => {
@@ -717,9 +745,13 @@ const ComplexGrid = (props) => {
       }} />
 
       <Body {...{
-        columns: PickObjectProps(innerColumns, Object.keys(innerColumns).slice(hSlicer, hSlicer + 20)),
-        items: innerItems.slice(slicer, slicer + maxRows),
-        chunk: slicer,
+        columns: innerColumns, //PickObjectProps(innerColumns, Object.keys(innerColumns).slice(hSlicer, hSlicer + 20)),
+        items: innerItems, //innerItems.slice(vSlicer, vSlicer + maxRows),
+        vSlicer: vSlicer,
+        hSlicer: hSlicer,
+        maxCols: maxCols,
+        maxRows: maxRows,
+        
         emitSlect: (id) => {
           for (let i = 0, len = innerItems.length; i < len; i++) {
             if (innerItems[i].id === id) {
@@ -775,6 +807,7 @@ ComplexGrid.propTypes = {
   columns: PropTypes.object,
   items: PropTypes.array,
   maxRows: PropTypes.number,
+  maxCols: PropTypes.number,
   onSelect: PropTypes.func,
   onSort: PropTypes.func,
   onFilter: PropTypes.func,
@@ -786,6 +819,7 @@ ComplexGrid.defaultProps = {
   columns: {},
   items: [],
   maxRows: 20,
+  maxCols: 20,
   onSelect: null,
   onChange: null
 }

@@ -19,6 +19,7 @@ const GlobalFilter = (props) => {
         <HeadCell colSpan={Object.keys(columns).length } className={[s.thEditable]}>
             <SizeBox disabled style={null}>
                 <ContentEditable {...{
+                    type: 'filter',
                     name: "globalFilter",
                     value: globalFilterText,
                     onChange: emitGlobalFilter

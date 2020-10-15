@@ -176,7 +176,7 @@ tbody {
 }
 ```
 
-## Rows and Columns Resizing
+## SizeBox component - Rows and Columns Resizing
 
 Yeah another challange. Normally table has automatic cell size set behavior. To override this and alow collapse and resizing we have to wrap cell content inside resizable `<div>`
 
@@ -217,14 +217,14 @@ Resulting table structure:
 
 Resize logic is following: 
 * Capture target object
-* retreive mouseX and mouseX positions, name (this will define action we doing), and row, offsetHeight, and offsetWidth, then place them into touchState.
+* retreive mouseX and mouseX positions, type (this will define action we doing), then row, offsetHeight, and offsetWidth, after place them into touchState.
 * On move retreive element parent and based on touchState values and mouse offest set new dimension
 * Stop drag or touch event
 
-we used onTouch events in mobile environment and onMouseDown, onMouseMove, onMouseUp for desktop binded globally to table container. Elemens are retreived inside and we perform actions based on their name
+we used onTouch events in mobile environment and onMouseDown, onMouseMove, onMouseUp for desktop binded globally to table container. Elemens are retreived inside and we perform actions based on their type
 
 
-## Columns object
+## Columns object structure
 
 ```js
 const columns = {
@@ -256,4 +256,14 @@ const columns = {
             title: 'Sub Rows'
         }
       },
+```
+
+## Contenteditable component
+
+## Auto TAB Indexing
+
+This table due to the its structure has
+
+```js
+
 ```
