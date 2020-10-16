@@ -28,6 +28,9 @@ import Body from './Body'
 import { HScrollBar, VScrollBar } from './ScrollBars'
 import ContextMenu from './ContextMenu'
 
+// hooks
+import useStateWithPromise from '../../hooks/useStateWithPromise'
+
 // Functions
 import { DeepCopy } from '../../functions/Deep'
 import CanUseDOM from '../../functions/CanUseDOM'
@@ -97,6 +100,14 @@ const ComplexGrid = (props) => {
     _setHSlicer(data)
   }
 
+  // tabindex state
+  const [tabIndexState, _setTabIndexState] = useState(null)
+  const tabIndexStateRef = useRef(tabIndexState)
+  const setTabIndexState = (data) => {
+    tabIndexStateRef.current = data
+    _setTabIndexState(data)
+  }
+
   // touch states
   const [touchState, _setTouchState] = useState({})
   const touchStateRef = useRef(touchState)
@@ -128,12 +139,209 @@ const ComplexGrid = (props) => {
 
 
   /*
+   * Functions
+   */
+
+  /*
+   * Filtering
+   * Single columns filter 
+   */
+  const filterItems = (items, columns) => {
+    const newItems = []
+        
+    // used for loop due to the performance reasons
+    for(let i = 0, len = items.length; i < len; i++) {
+      const item = items[i]
+      let found = []
+      let hasFilter = false
+
+      Object.keys(columns).filter(colName => colName !=='id').forEach(colName => {
+        const filterText = columns[colName].filterText.toLowerCase()
+        const text = item[colName] ? item[colName].toString().toLowerCase() : ''
+
+        if(filterText !== '') {
+          hasFilter = true
+
+          if(text.indexOf(filterText) > -1) {
+            found.push(true)
+          } else {
+            found.push(false)
+          }
+        }
+      })
+
+      if(hasFilter ? !found.includes(false) : true) {
+        newItems.push(item)
+      }
+    }
+
+    return newItems
+  }
+
+  /*
+   * Multiple columns filter
+   */
+  const globalFilterItems = (items, columns, filterText) => {
+    filterText = filterText.toLowerCase()
+    const newItems = []
+
+    for(let i = 0, len = items.length; i < len; i++) {
+      const item = items[i]
+      let found = false
+
+      if(filterText !== '') {
+        Object.keys(columns).filter(colName => colName !=='id').forEach(colName => {
+          const text = item[colName] ? item[colName].toString().toLowerCase() : ''
+          if(text.indexOf(filterText) > -1) {
+            found = true
+          }
+        })
+      } else {
+        found = true
+      }
+
+      if(found) newItems.push(item)
+    }
+
+    return newItems
+  }
+
+  /*
+   * Sorting
+   * Multiple columns sorting
+   */
+  const sortItems = (items, columns) => {
+    const criteria = []
+    Object.keys(columns).forEach(colName => {
+      criteria.push({
+        key: colName,
+        dataType: columns[colName].dataType,
+        dir: columns[colName].sortDir
+      })
+    })
+
+    return items.sort((a, b) => {
+      /**
+       * 
+       * @param {*} v 
+       */
+      const isNum = function(v){
+        return (!isNaN(parseFloat(v)) && isFinite(v));	
+      };
+
+      /**
+       * 
+       * @param {*} a 
+       * @param {*} b 
+       * @param {number} d - direction
+       */
+      const sortNum = (a, b, d) => {
+        a = a * 1
+        b = b * 1
+
+        if (a === b) return 0
+        return a > b ? 1 * d : -1 * d;
+      }
+
+      /**
+       * 
+       * @param {*} a 
+       * @param {*} b 
+       * @param {number} d 
+       */
+      const sortStr = (a, b, d) => {
+        a = a ? a.toString() : ''
+        b = b ? b.toString() : ''
+
+        return a.localeCompare(b) * d
+      }
+      
+      const results = []
+      
+      for(let i = 0, len = criteria.length; i < len; i++) {
+        const k = criteria[i].key
+        const dataType = criteria[i].dataType
+        const dir = criteria[i].dir === 'asc' ? 1 : criteria[i].dir === 'desc' ? -1 : 0
+        
+        switch(dataType) {
+          case 'string':
+            results.push(sortStr(a[k], b[k], dir))
+          break
+
+          case 'number':
+            results.push(sortNum(a[k], b[k], dir))
+          break
+
+          case 'date-time':
+            break
+
+          default:
+            break
+        } 
+      }
+
+      return results.reduce((sum, result) => sum || result, 0)
+    })
+  }
+
+  /**
+   * Giving tabIndex, this functions searches it into the DOM and returns:
+   * * 0 - element is in the viewport (no additional table slice move steps)
+   * * 1 - element isn't in DOM (1 additional table slice move step)
+   * * 2 - element isn't in viewport (2 additional table slice move steps)
+   * @param {number} tabIndex 
+   */
+  const focusTabIndex = (tabIndex) => {
+    
+    // https://www.javascripttutorial.net/dom/css/check-if-an-element-is-visible-in-the-viewport/
+    const isInViewport =  (elem) => {
+      const rect = elem.getBoundingClientRect();
+      return (
+          rect.top >= 0 &&
+          rect.left >= 0 &&
+          rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+          rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+      )
+    }
+
+    // retreive all elements having tabindex in the DOM tree
+    const elems = document.querySelectorAll('[tabindex]')
+
+    let moveIndex = 1 // move 1 step
+    for (let i = 0, len = elems.length; i < len; i++) {
+      let elem = elems[i]
+
+      // tabindex exists in the DOM tree
+      if (tabIndex === +(elem.getAttribute('tabindex'))) {
+        if (!isInViewport(elem)) {
+          moveIndex = 2 // move 2 steps
+          break
+        }
+
+        // focus visible tabindex
+        if(elem.getAttribute('contenteditable')) {
+          elem.click()
+        } else {
+          elem.focus()
+        }
+
+        moveIndex = 0 // move 0 steps
+      }
+    }
+
+    return moveIndex
+  }
+
+
+  /*
    * Event handlers
    */
 
   /*
    * Custom scroll events
    */
+  
+
   // arrow keys scrolling and tabulation
   const handleKeyDown = (e) => {
     const { key, target } = e
@@ -164,39 +372,12 @@ const ComplexGrid = (props) => {
 
     if(['Tab'].includes(key)) {
       e.preventDefault()
-
-      //const seach = () => {
-        const tabIndex  = +(target.getAttribute('tabindex')) + 1
-        const elems = document.querySelectorAll('[tabindex]')
-
-        for (let i = 0, len = elems.length; i < len; i++) {
-          const nextTabIndex = +(elems[i].getAttribute('tabindex'))
-          if (nextTabIndex === tabIndex) {
-            //setHSlicer(hSlicer + 1)
-
-            if(elems[i].getAttribute('contenteditable')) {
-              elems[i].click()
-            } else {
-              elems[i].focus()
-            }
-
-            //return true
-          }
-        }
-
-        //return false
-      //}
-/*
-      if(!seach()) {
-          setHSlicer(0)
-          setVSlicer(vSlicer + 1)
-
-          seach()
-      }
-      */
-      //const max = innerColumnsRef.current.length - 1
-      //setHSlicer(hSlicerRef.current + 1 > max ? max : hSlicerRef.current + 1)
-      //target.focus()
+      
+      const tabIndex  = +(target.getAttribute('tabindex')) + 1
+      setTabIndexState({
+        tabIndex: tabIndex,
+        trigger: tabIndexState ? !tabIndexState.trigger : true
+      })
     }
   }
 
@@ -403,151 +584,7 @@ const ComplexGrid = (props) => {
 
   }
 
-  /*
-   * Functions
-   */
 
-  /*
-   * Filtering
-   * Single columns filter 
-   */
-  const filterItems = (items, columns) => {
-    const newItems = []
-        
-    // used for loop due to the performance reasons
-    for(let i = 0, len = items.length; i < len; i++) {
-      const item = items[i]
-      let found = []
-      let hasFilter = false
-
-      Object.keys(columns).filter(colName => colName !=='id').forEach(colName => {
-        const filterText = columns[colName].filterText.toLowerCase()
-        const text = item[colName] ? item[colName].toString().toLowerCase() : ''
-
-        if(filterText !== '') {
-          hasFilter = true
-
-          if(text.indexOf(filterText) > -1) {
-            found.push(true)
-          } else {
-            found.push(false)
-          }
-        }
-      })
-
-      if(hasFilter ? !found.includes(false) : true) {
-        newItems.push(item)
-      }
-    }
-
-    return newItems
-  }
-
-  /*
-   * Multiple columns filter
-   */
-  const globalFilterItems = (items, columns, filterText) => {
-    filterText = filterText.toLowerCase()
-    const newItems = []
-
-    for(let i = 0, len = items.length; i < len; i++) {
-      const item = items[i]
-      let found = false
-
-      if(filterText !== '') {
-        Object.keys(columns).filter(colName => colName !=='id').forEach(colName => {
-          const text = item[colName] ? item[colName].toString().toLowerCase() : ''
-          if(text.indexOf(filterText) > -1) {
-            found = true
-          }
-        })
-      } else {
-        found = true
-      }
-
-      if(found) newItems.push(item)
-    }
-
-    return newItems
-  }
-
-  /*
-   * Sorting
-   * Multiple columns sorting
-   */
-  const sortItems = (items, columns) => {
-    const criteria = []
-    Object.keys(columns).forEach(colName => {
-      criteria.push({
-        key: colName,
-        dataType: columns[colName].dataType,
-        dir: columns[colName].sortDir
-      })
-    })
-
-    return items.sort((a, b) => {
-      /**
-       * 
-       * @param {*} v 
-       */
-      const isNum = function(v){
-        return (!isNaN(parseFloat(v)) && isFinite(v));	
-      };
-
-      /**
-       * 
-       * @param {*} a 
-       * @param {*} b 
-       * @param {number} d - direction
-       */
-      const sortNum = (a, b, d) => {
-        a = a * 1
-        b = b * 1
-
-        if (a === b) return 0
-        return a > b ? 1 * d : -1 * d;
-      }
-
-      /**
-       * 
-       * @param {*} a 
-       * @param {*} b 
-       * @param {number} d 
-       */
-      const sortStr = (a, b, d) => {
-        a = a ? a.toString() : ''
-        b = b ? b.toString() : ''
-
-        return a.localeCompare(b) * d
-      }
-      
-      const results = []
-      
-      for(let i = 0, len = criteria.length; i < len; i++) {
-        const k = criteria[i].key
-        const dataType = criteria[i].dataType
-        const dir = criteria[i].dir === 'asc' ? 1 : criteria[i].dir === 'desc' ? -1 : 0
-        
-        switch(dataType) {
-          case 'string':
-            results.push(sortStr(a[k], b[k], dir))
-          break
-
-          case 'number':
-            results.push(sortNum(a[k], b[k], dir))
-          break
-
-          case 'date-time':
-            break
-
-          default:
-            break
-        } 
-      }
-
-      return results.reduce((sum, result) => sum || result, 0)
-    })
-  }
 
 
 
@@ -616,17 +653,86 @@ const ComplexGrid = (props) => {
     }
   }, [items])
 
+
+  /*
+   * Custom cells tab lifecycle methods
+   */
   useEffect(() => {
-    /*
-    const elems = document.querySelectorAll('[contenteditable]')
-    for (let i = 0, len = elems.length; i < len; i++) {
-      if(elems[i].getAttribute('type') === 'filter') {
-        elems[i].tabIndex = i
+    if (tabIndexState) {
+      // 1. CELLS TAB
+      const tabIndex = tabIndexState.tabIndex
+
+      if (tabIndex < innerItems.length * Object.keys(innerColumns).length) {
+
+        // try to search tabindex in DOM
+        const res = focusTabIndex(tabIndex) 
+        console.log(`1. CELLS TAB: ${res}`)
+
+        switch (res) {
+          case 1:
+          case 2:
+          /*
+           * element isn't available in DOM or viewport, we move the table by changing hSlice state (+1 or +2)
+           * and trigg useEffect(() => {}, [hSlice]) as consequence, where we will try to search tabIndex again
+           * NOTE: we must have tabIndexState !== null to enter this method
+           */
+          setHSlicer(hSlicer + res)
+          break
+
+          default:
+            // element is found without slicing the table, so tabIndexState isn't necessary anymore
+            console.log('1. CELLS TAB: destroy tabIndexState')
+            setTabIndexState(null)
+          break
+        }
       }
     }
-    */
+  }, [tabIndexState])
 
-  }, [innerItems, innerColumns, vSlicer, hSlicer])
+  useEffect(() => {
+    if (tabIndexState) {
+      // 2. CELLS TAB
+      const tabIndex = tabIndexState?.tabIndex
+
+      if (tabIndex < innerItems.length * Object.keys(innerColumns).length) {
+
+        // try to search tabindex in DOM again
+        const res = focusTabIndex(tabIndex)
+        console.log(`2. CELLS TAB: ${res}`)
+
+        switch(res) {
+          case 1:
+          case 2:
+          /*
+           * element isn't available in DOM, we move the table by changing vSlice state (+1) to perform Line Feed
+           * and tring useEffect(() => [vSlice]) as consequence, where we will trig Carriage Return
+           * which will cause this method to run once agin
+           * NOTE: we must have tabIndexState !== null to enter this method
+           */
+            setVSlicer(vSlicer + 1)
+          break
+          
+          default:
+            console.log('2. CELLS TAB: destroy tabIndexState')
+            setTabIndexState(null)
+          break
+        }
+      }
+    }
+
+  }, [hSlicer])
+
+  useEffect(() => {
+    if (tabIndexState) {
+      // 3. CELLS TAB
+      const tabIndex = tabIndexState?.tabIndex
+
+      if (tabIndex < innerItems.length * Object.keys(innerColumns).length) {
+        // Carriage Return
+        setHSlicer(0)
+      }
+    }
+  }, [vSlicer])
 
   if (!(items.length > 0)) {
     return <div className={`${s.container}`}><div>No Data</div></div>
@@ -665,7 +771,7 @@ const ComplexGrid = (props) => {
 
       <Head {...{
         globalFilterText: globalFilterText,
-        columns: PickObjectProps(innerColumns, Object.keys(innerColumns).slice(hSlicer, hSlicer + 20)),
+        columns: PickObjectProps(innerColumns, Object.keys(innerColumns).slice(hSlicer, hSlicer + maxCols)),
         selected: innerItems.length > 0 ? innerItems.reduce((sum, next) => sum && next.selected, true) : false,
         emitSlect: (selected) => {
           const newItems = innerItems.map(row => {
@@ -819,7 +925,7 @@ ComplexGrid.defaultProps = {
   columns: {},
   items: [],
   maxRows: 20,
-  maxCols: 20,
+  maxCols: 5,
   onSelect: null,
   onChange: null
 }

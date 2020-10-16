@@ -32,7 +32,6 @@ import ContentEditable from '../../ContentEditable'
 
 import { DeepMerge } from '../../../functions/Deep'
 import CanUseDOM from '../../../functions/CanUseDOM'
-import { VScrollBar } from '../ScrollBars'
 
 // CSS Modulses Server Side Prerendering
 const s = CanUseDOM() ? require('./scss/style.module.scss') : require('./scss/style.module.scss.json')
@@ -60,7 +59,13 @@ const Body = (props) => {
 
           // retreive initial tabindex, then increment
           if(!tabIndex) {
-            tabIndex = (rowIndex * visibleColumns.length) + colIndex
+            tabIndex = (rowIndex * Object.keys(columns).length) + colIndex
+
+            // console.log(`rowIndex: ${rowIndex}`)
+            // console.log(`visibleColumns: ${Object.keys(columns).length}`)
+            // console.log(`colIndex ${colIndex}`)
+            // console.log(`start index ${tabIndex}`)
+
           } else {
             tabIndex++
           }
