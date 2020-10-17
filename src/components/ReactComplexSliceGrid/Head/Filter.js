@@ -24,15 +24,13 @@ const Filter = (props) => {
                     return <HeadCell key={colIndex} className={[s.th]} scope="col"></HeadCell>
                 default:
                     return <HeadCell key={colIndex} className={[s.thEditable]} scope="col">
-                        <SizeBox disabled style={sizeBoxStyle}>
-                            <ContentEditable {...{
-                                type: 'filter',
-                                name: colName,
-                                value: columns[colName].filterText ? columns[colName].filterText: "",
-                                onChange: emitFilter
-                                // onLeave: (e) => console.log(e)
-                            }} />
-                        </SizeBox>
+                        <ContentEditable {...{
+                            type: 'filter',
+                            name: colName,
+                            value: columns[colName].filterText ? columns[colName].filterText: "",
+                            onChange: emitFilter
+                            // onLeave: (e) => console.log(e)
+                        }} />
                     </HeadCell>
             }
         })}

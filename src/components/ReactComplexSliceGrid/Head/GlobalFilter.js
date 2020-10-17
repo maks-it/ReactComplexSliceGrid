@@ -17,15 +17,13 @@ const GlobalFilter = (props) => {
         <HeadCell className={[s.th]}><i className="fas fa-search"></i></HeadCell>
        
         <HeadCell colSpan={Object.keys(columns).length } className={[s.thEditable]}>
-            <SizeBox disabled style={null}>
-                <ContentEditable {...{
-                    type: 'filter',
-                    name: "globalFilter",
-                    value: globalFilterText,
-                    onChange: emitGlobalFilter
-                    // onLeave: (e) => console.log(e)
-                }}/>
-            </SizeBox>
+            <ContentEditable {...{
+                type: 'filter',
+                name: "globalFilter",
+                value: globalFilterText,
+                onChange: emitGlobalFilter
+                // onLeave: (e) => console.log(e)
+            }}/>
         </HeadCell>
     </TableRow>
 }

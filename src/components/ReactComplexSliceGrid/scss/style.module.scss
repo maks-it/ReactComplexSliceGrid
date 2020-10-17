@@ -14,25 +14,24 @@ $scrollbar_button_color: #5AB9EA;
 
 .container {
     position: relative;
+
+    // these propertieas are set from js on viewportResize
     // height: 600px;
     // width: 100%;
     // border: 1px solid $border_color;
+
     background: linear-gradient(90deg, #1976D2, #536DFE);
+
     overflow: hidden;
     user-select: none;
-
-    .editable {
-        background: white;
-    }
-
+    touch-action: none;
+    
     .complexGrid {
         position: relative;
         top: 0px;
         left: 0px;
         border-collapse: collapse;
-        //overflow: hidden;
         box-shadow: 0 0 20px rgba(0,0,0,0.1);
-         
-        table-layout:fixed;
+        //table-layout:fixed;
     }
 }

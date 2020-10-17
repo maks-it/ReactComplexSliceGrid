@@ -283,36 +283,51 @@ const ComplexGrid = (props) => {
   }
 
 
-  // https://www.javascripttutorial.net/dom/css/check-if-an-element-is-visible-in-the-viewport/
+  /**
+   * This is slightly changed function taken from:
+   * * https://www.javascripttutorial.net/dom/css/check-if-an-element-is-visible-in-the-viewport/
+   * @param {object} elem 
+   */
   const isInViewport =  (elem) => {
+    const parentRect = containerRef.current.getBoundingClientRect();
     const rect = elem.getBoundingClientRect();
-    return (
-        rect.top >= 0 && rect.bottom <= (/*window.innerHeight*/ containerRef.current.offsetHeight - 25 /* || document.documentElement.clientHeight*/) &&
-        rect.left >= 0 && rect.right <= (/*window.innerWidth*/ containerRef.current.offsetWidth - 25 /*|| document.documentElement.clientWidth*/)
-    )
+    
+    // console.log(parentRect)
+    // console.log(rect)
+
+    /*
+    return rect.top >= 0 && rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+    rect.left >= 0 && rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+    */
+
+    /*
+    // Element is fully visible
+    return rect.top >= parentRect.top && rect.bottom <= parentRect.bottom - 25 &&
+    rect.left >= parentRect.left && rect.right <= parentRect.right - 25
+    */
+
+    // Element top or right visible
+    return parentRect.left <= rect.left && rect.left <= parentRect.right - 50 &&
+    parentRect.top <= rect.top && rect.top <= parentRect.bottom - 50
   }
 
   /**
    * Giving tabIndex, this functions searches it into the DOM and returns:
-   * * 0 - element is in the viewport (no additional table slice move steps)
-   * * 1 - element isn't in DOM (1 additional table slice move step)
-   * * 2 - element isn't in viewport (2 additional table slice move steps)
+   * * true - element is in the viewport
+   * * false - element isn't in DOM
    * @param {number} tabIndex 
    */
   const focusTabIndex = (tabIndex) => {
     // retreive all elements having tabindex in the DOM tree
     const elems = document.querySelectorAll('[tabindex]')
 
-    let moveIndex = 1 // move 1 step
+    let found = false
     for (let i = 0, len = elems.length; i < len; i++) {
       let elem = elems[i]
 
       // tabindex exists in the DOM tree
       if (tabIndex === +(elem.getAttribute('tabindex'))) {
-        if (!isInViewport(elem)) {
-          moveIndex = 2 // move 1 steps
-          break
-        }
+        if (!isInViewport(elem)) break
 
         // focus visible tabindex
         if(elem.getAttribute('contenteditable')) {
@@ -321,11 +336,11 @@ const ComplexGrid = (props) => {
           elem.focus()
         }
 
-        moveIndex = 0 // move 0 steps
+        found = true
       }
     }
 
-    return moveIndex
+    return found
   }
 
 
@@ -336,8 +351,6 @@ const ComplexGrid = (props) => {
   /*
    * Custom scroll events
    */
-  
-
   // arrow keys scrolling and tabulation
   const handleKeyDown = (e) => {
     const { key, target } = e
@@ -370,6 +383,7 @@ const ComplexGrid = (props) => {
       e.preventDefault()
       
       const tabIndex  = +(target.getAttribute('tabindex')) + 1
+
       setTabIndexState({
         tabIndex: tabIndex,
         trigger: tabIndexState ? !tabIndexState.trigger : true
@@ -377,7 +391,7 @@ const ComplexGrid = (props) => {
     }
   }
 
-  // mouse scrolling
+  // Mouse wheel scrolling
   const handleMouseScroll = (e) => {
     e.preventDefault()
 
@@ -394,6 +408,7 @@ const ComplexGrid = (props) => {
    * Custom touch an drag events
    */
   const handleTouchStart = (e) => {
+    
     if ([1, 2].includes(e.button)) {
       return
     }
@@ -454,6 +469,7 @@ const ComplexGrid = (props) => {
   }
 
   const handleTouchMove = (e) => {
+
     const mouseX = e.touches ? e.touches[0].screenX : e.screenX
     const mouseY = e.touches ? e.touches[0].screenY : e.screenY
 
@@ -506,12 +522,15 @@ const ComplexGrid = (props) => {
         : vSlicerRef.current - deltaY < innerItemsRef.current.length
         ? vSlicerRef.current - deltaY : innerItemsRef.current.length - 1)
       
-        setHSlicer(hSlicerRef.current - deltaX < 0 ? 0 : hSlicerRef.current - deltaX)
+      setHSlicer(hSlicerRef.current - deltaX < 0 ? 0
+        : hSlicerRef.current - deltaX < Object.keys(innerColumnsRef.current).length
+        ? hSlicerRef.current - deltaX : Object.keys(innerColumnsRef.current).length - 1)
     }
 
   }
 
   const handleTouchEnd = (e) => {
+
     const mouseX = e.changedTouches ? e.changedTouches[0].clientX : e.screenX
     const mouseY = e.changedTouches ? e.changedTouches[0].clientX : e.screenY
 
@@ -573,8 +592,7 @@ const ComplexGrid = (props) => {
     // console.log(parentNode.getBoundingClientRect())
     setViewPortState({
       width: `${parentNode.offsetWidth}px`,
-      //height: `${parentNode.offsetHeight}px`
-      height: /*`${parentNode.offsetHeight}px`*/window.innerHeight
+      height: `${parentNode.offsetHeight}px`
     })
        
 
@@ -659,34 +677,23 @@ const ComplexGrid = (props) => {
       const tabIndex = tabIndexState.tabIndex
 
       if (tabIndex < innerItems.length * Object.keys(innerColumns).length) {
-
-        // try to search tabindex in DOM
-        const res = focusTabIndex(tabIndex) 
-        console.log(`1. CELLS TAB: ${res}`)
-
-        switch (res) {
-          case 1:
-          case 2:
-          /*
-           * element isn't available in DOM or viewport, we move the table by changing hSlice state (+1 or +2)
-           * and trigg useEffect(() => {}, [hSlice]) as consequence, where we will try to search tabIndex again
-           * NOTE: we must have tabIndexState !== null to enter this method
-           */
-          setHSlicer(hSlicer + res)
-          break
-
-          default:
-            // element is found without slicing the table, so tabIndexState isn't necessary anymore
-            console.log('1. CELLS TAB: destroy tabIndexState')
-            setTabIndexState(null)
-          break
+        if (focusTabIndex(tabIndex)) {
+          // element is found without slicing the table, so tabIndexState isn't necessary anymore
+          setTabIndexState(null)
+        } else {
+         /*
+          * element isn't available in DOM or viewport, we move the table by changing hSlice state (+1 or +2)
+          * and trigg useEffect(() => {}, [hSlice]) as consequence, where we will try to search tabIndex again
+          * NOTE: we must have tabIndexState !== null to enter this method
+          */
+         setHSlicer(hSlicer + 1)
         }
+
       }
     }
   }, [tabIndexState])
 
-
-  const [count, setCount] = useState(0)
+  const [foundTabIndexErrorCount, setFoundTabIndexErrorCount] = useState(0)
   useEffect(() => {
     if (tabIndexState) {
       // 2. CELLS TAB
@@ -694,35 +701,24 @@ const ComplexGrid = (props) => {
 
       if (tabIndex < innerItems.length * Object.keys(innerColumns).length) {
 
-        // try to search tabindex in DOM again
-        const res = focusTabIndex(tabIndex)
-        console.log(`2. CELLS TAB: ${res}`)
+        if (focusTabIndex(tabIndex)) {
+          setTabIndexState(null)
 
-        switch(res) {
-          case 1:
-          case 2:
+          setFoundTabIndexErrorCount(0)
+        } else {
           /*
-           * element isn't available in DOM, we move the table by changing vSlice state (+1) to perform Line Feed
-           * and trig useEffect(() => [vSlice]) as consequence, where we will trig Carriage Return
-           * which will cause this method to run once agin
-           * NOTE: we must have tabIndexState !== null to enter this method
-           */
+          * element isn't available in DOM, we move the table by changing vSlice state (+1) to perform Line Feed
+          * and trig useEffect(() => [vSlice]) as consequence, where we will trig Carriage Return
+          * which will cause this method to run once agin
+          * NOTE: we must have tabIndexState !== null to enter this method
+          */
 
-            if(count >= 1) {
-              setVSlicer(vSlicer + 1) // on the second consequtive error go to new line
-            } else {
-              setHSlicer(0) // second pass on same state will be ignored
-            }
-
-            setCount(count + 1)
-          break
-          
-          default:
-            console.log('2. CELLS TAB: destroy tabIndexState')
-            setTabIndexState(null)
-
-            setCount(0)
-          break
+          if(foundTabIndexErrorCount >= 1) {
+            setVSlicer(vSlicer + 1) // on the second consequtive error go to new line
+          } else {
+            setHSlicer(0) // second pass on same state will be ignored
+            setFoundTabIndexErrorCount(foundTabIndexErrorCount + 1)
+          }
         }
       }
     }
@@ -735,26 +731,14 @@ const ComplexGrid = (props) => {
       const tabIndex = tabIndexState?.tabIndex
 
       if (tabIndex < innerItems.length * Object.keys(innerColumns).length) {
-        // Carriage Return
-        // console.log('3. CELLS TAB: Carriage Return')
-        //setHSlicer(0)
-        //setHSlicer(null) // here is the problem to make it rerender
-
-
-        const res = focusTabIndex(tabIndex)
-        switch(res) {
-          case 1:
-          case 2:
-            default:
-              console.log('3. CELLS TAB: destroy tabIndexState')
-              setTabIndexState(null)
-
-            break
-        }
-        
+        if (focusTabIndex(tabIndex)) {
+          setTabIndexState(null)
+          setFoundTabIndexErrorCount(0)
+        }       
       }
     }
   }, [vSlicer])
+
 
   if (!(items.length > 0)) {
     return <div className={`${s.container}`}><div>No Data</div></div>
@@ -774,7 +758,7 @@ const ComplexGrid = (props) => {
     onMouseMove={handleTouchMove}
     onMouseUp={handleTouchEnd}
 
-    /*onContextMenu={handleContextMenu}*/>
+    /* onContextMenu={handleContextMenu} */>
 
     {/* Scroll Bars */}
     <VScrollBar style={{
