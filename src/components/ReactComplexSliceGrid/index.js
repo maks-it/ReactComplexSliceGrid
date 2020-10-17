@@ -291,14 +291,15 @@ const ComplexGrid = (props) => {
   const isInViewport =  (elem) => {
     const parentRect = containerRef.current.getBoundingClientRect();
     const rect = elem.getBoundingClientRect();
-    
-    // console.log(parentRect)
-    // console.log(rect)
 
-    /*
+    /* 
+    // Original
     return rect.top >= 0 && rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
     rect.left >= 0 && rect.right <= (window.innerWidth || document.documentElement.clientWidth)
     */
+
+    // console.log(parentRect)
+    // console.log(rect)
 
     /*
     // Element is fully visible
@@ -307,7 +308,7 @@ const ComplexGrid = (props) => {
     */
 
     // Element top or right visible
-    return parentRect.left <= rect.left && rect.left <= parentRect.right - 50 &&
+    return parentRect.left <= rect.left && rect.left <= parentRect.right - 25 &&
     parentRect.top <= rect.top && rect.top <= parentRect.bottom - 50
   }
 
@@ -319,7 +320,7 @@ const ComplexGrid = (props) => {
    */
   const focusTabIndex = (tabIndex) => {
     // retreive all elements having tabindex in the DOM tree
-    const elems = document.querySelectorAll('[tabindex]')
+    const elems = tableRef.current.querySelectorAll('[tabindex]')
 
     let found = false
     for (let i = 0, len = elems.length; i < len; i++) {
@@ -382,12 +383,15 @@ const ComplexGrid = (props) => {
     if(['Tab'].includes(key)) {
       e.preventDefault()
       
+
       const tabIndex  = +(target.getAttribute('tabindex')) + 1
 
       setTabIndexState({
         tabIndex: tabIndex,
         trigger: tabIndexState ? !tabIndexState.trigger : true
       })
+
+      
     }
   }
 
@@ -693,7 +697,7 @@ const ComplexGrid = (props) => {
     }
   }, [tabIndexState])
 
-  const [foundTabIndexErrorCount, setFoundTabIndexErrorCount] = useState(0)
+  const [tabIndexErrorCount, setTabIndexErrorCount] = useState(0)
   useEffect(() => {
     if (tabIndexState) {
       // 2. CELLS TAB
@@ -704,7 +708,7 @@ const ComplexGrid = (props) => {
         if (focusTabIndex(tabIndex)) {
           setTabIndexState(null)
 
-          setFoundTabIndexErrorCount(0)
+          setTabIndexErrorCount(0)
         } else {
           /*
           * element isn't available in DOM, we move the table by changing vSlice state (+1) to perform Line Feed
@@ -713,11 +717,11 @@ const ComplexGrid = (props) => {
           * NOTE: we must have tabIndexState !== null to enter this method
           */
 
-          if(foundTabIndexErrorCount >= 1) {
-            setVSlicer(vSlicer + 1) // on the second consequtive error go to new line
+          if(tabIndexErrorCount === 1) {
+            setVSlicer(vSlicer + 1) // on the second consequtive error go to new line, bypass other events
           } else {
             setHSlicer(0) // second pass on same state will be ignored
-            setFoundTabIndexErrorCount(foundTabIndexErrorCount + 1)
+            setTabIndexErrorCount(tabIndexErrorCount + 1)
           }
         }
       }
@@ -733,7 +737,7 @@ const ComplexGrid = (props) => {
       if (tabIndex < innerItems.length * Object.keys(innerColumns).length) {
         if (focusTabIndex(tabIndex)) {
           setTabIndexState(null)
-          setFoundTabIndexErrorCount(0)
+          setTabIndexErrorCount(0)
         }       
       }
     }
@@ -747,18 +751,23 @@ const ComplexGrid = (props) => {
   /*
    * Implementation
    */
-  return <div ref={containerRef} className={`${s.container}`} style={viewPortState}
-    onKeyDown={handleKeyDown}
+  return <div {...{
+    ref: containerRef,
+    className: s.container,
+    style: viewPortState,
 
-    onTouchStart={handleTouchStart}
-    onTouchMove={handleTouchMove}
-    onTouchEnd={handleTouchEnd}
+    onKeyDown: handleKeyDown,
 
-    onMouseDown={handleTouchStart}
-    onMouseMove={handleTouchMove}
-    onMouseUp={handleTouchEnd}
+    onTouchStart: handleTouchStart,
+    onTouchMove: handleTouchMove,
+    onTouchEnd: handleTouchEnd,
 
-    /* onContextMenu={handleContextMenu} */>
+    onMouseDown: handleTouchStart,
+    onMouseMove: handleTouchMove,
+    onMouseUp: handleTouchEnd,
+
+    /* onContextMenu: handleContextMenu*/
+  }}>
 
     {/* Scroll Bars */}
     <VScrollBar style={{
