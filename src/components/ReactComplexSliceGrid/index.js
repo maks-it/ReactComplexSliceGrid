@@ -28,8 +28,6 @@ import Body from './Body'
 import { HScrollBar, VScrollBar } from './ScrollBars'
 import ContextMenu from './ContextMenu'
 
-// hooks
-import useStateWithPromise from '../../hooks/useStateWithPromise'
 
 // Functions
 import { DeepCopy } from '../../functions/Deep'
@@ -284,6 +282,16 @@ const ComplexGrid = (props) => {
     })
   }
 
+
+  // https://www.javascripttutorial.net/dom/css/check-if-an-element-is-visible-in-the-viewport/
+  const isInViewport =  (elem) => {
+    const rect = elem.getBoundingClientRect();
+    return (
+        rect.top >= 0 && rect.bottom <= (/*window.innerHeight*/ containerRef.current.offsetHeight - 25 /* || document.documentElement.clientHeight*/) &&
+        rect.left >= 0 && rect.right <= (/*window.innerWidth*/ containerRef.current.offsetWidth - 25 /*|| document.documentElement.clientWidth*/)
+    )
+  }
+
   /**
    * Giving tabIndex, this functions searches it into the DOM and returns:
    * * 0 - element is in the viewport (no additional table slice move steps)
@@ -292,18 +300,6 @@ const ComplexGrid = (props) => {
    * @param {number} tabIndex 
    */
   const focusTabIndex = (tabIndex) => {
-    
-    // https://www.javascripttutorial.net/dom/css/check-if-an-element-is-visible-in-the-viewport/
-    const isInViewport =  (elem) => {
-      const rect = elem.getBoundingClientRect();
-      return (
-          rect.top >= 0 &&
-          rect.left >= 0 &&
-          rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-          rect.right <= (window.innerWidth || document.documentElement.clientWidth)
-      )
-    }
-
     // retreive all elements having tabindex in the DOM tree
     const elems = document.querySelectorAll('[tabindex]')
 
@@ -314,7 +310,7 @@ const ComplexGrid = (props) => {
       // tabindex exists in the DOM tree
       if (tabIndex === +(elem.getAttribute('tabindex'))) {
         if (!isInViewport(elem)) {
-          moveIndex = 2 // move 2 steps
+          moveIndex = 2 // move 1 steps
           break
         }
 
@@ -689,6 +685,8 @@ const ComplexGrid = (props) => {
     }
   }, [tabIndexState])
 
+
+  const [count, setCount] = useState(0)
   useEffect(() => {
     if (tabIndexState) {
       // 2. CELLS TAB
@@ -705,16 +703,25 @@ const ComplexGrid = (props) => {
           case 2:
           /*
            * element isn't available in DOM, we move the table by changing vSlice state (+1) to perform Line Feed
-           * and tring useEffect(() => [vSlice]) as consequence, where we will trig Carriage Return
+           * and trig useEffect(() => [vSlice]) as consequence, where we will trig Carriage Return
            * which will cause this method to run once agin
            * NOTE: we must have tabIndexState !== null to enter this method
            */
-            setVSlicer(vSlicer + 1)
+
+            if(count >= 1) {
+              setVSlicer(vSlicer + 1) // on the second consequtive error go to new line
+            } else {
+              setHSlicer(0) // second pass on same state will be ignored
+            }
+
+            setCount(count + 1)
           break
           
           default:
             console.log('2. CELLS TAB: destroy tabIndexState')
             setTabIndexState(null)
+
+            setCount(0)
           break
         }
       }
@@ -729,7 +736,22 @@ const ComplexGrid = (props) => {
 
       if (tabIndex < innerItems.length * Object.keys(innerColumns).length) {
         // Carriage Return
-        setHSlicer(0)
+        // console.log('3. CELLS TAB: Carriage Return')
+        //setHSlicer(0)
+        //setHSlicer(null) // here is the problem to make it rerender
+
+
+        const res = focusTabIndex(tabIndex)
+        switch(res) {
+          case 1:
+          case 2:
+            default:
+              console.log('3. CELLS TAB: destroy tabIndexState')
+              setTabIndexState(null)
+
+            break
+        }
+        
       }
     }
   }, [vSlicer])
@@ -925,7 +947,7 @@ ComplexGrid.defaultProps = {
   columns: {},
   items: [],
   maxRows: 20,
-  maxCols: 5,
+  maxCols: 20,
   onSelect: null,
   onChange: null
 }

@@ -42,6 +42,7 @@ return <div style={{/*padding: '0px 100px'*/}}>
         age: { title: 'Age', dataType: 'number' },
         visits: { title: 'Visits', dataType: 'number' },
         progress: { title: 'Progress', dataType: 'number' },
+        sum: { title: 'Sum', dataType: 'formula'},
         status: { title: 'Status', dataType: 'string' },
         subRows: { title: 'Sub Rows' }
       },

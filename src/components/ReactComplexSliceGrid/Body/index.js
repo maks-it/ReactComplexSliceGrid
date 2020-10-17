@@ -30,8 +30,12 @@ import SizeBox from '../SizeBox'
 import MyInput from '../../MyInput'
 import ContentEditable from '../../ContentEditable'
 
+// Functions
 import { DeepMerge } from '../../../functions/Deep'
 import CanUseDOM from '../../../functions/CanUseDOM'
+
+// External functions
+import * as math from 'mathjs';
 
 // CSS Modulses Server Side Prerendering
 const s = CanUseDOM() ? require('./scss/style.module.scss') : require('./scss/style.module.scss.json')
@@ -99,6 +103,28 @@ const Body = (props) => {
                 {row[colName]}
               </SizeBox>
             </BodyCell>
+
+            case 'formula':
+              let value = row[colName]?.toString()
+
+              Object.keys(row).forEach(colName => {
+                value = value.replace(colName, row[colName])
+              })
+
+              try {
+                value = math.evaluate(value)
+              }
+              catch (e) {
+                value = e.toString()
+              }
+
+              return <BodyCell key={colIndex} className={[s.td]}>
+                <SizeBox name={colName} disabled style={sizeBoxStyle}>
+                  <div {...{
+                    tabIndex: tabIndex
+                  }}>{value}</div>
+                </SizeBox>
+              </BodyCell>
             
             default:
               return <BodyCell key={colIndex} className={[s.td]}>
