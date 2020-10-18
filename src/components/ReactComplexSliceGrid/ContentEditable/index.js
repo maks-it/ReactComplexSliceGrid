@@ -21,7 +21,6 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import PropTypes from 'prop-types'
-import className from 'classnames'
 
 const ContentEditable = (props) => {
   const { name, value, className, mode, onChange, onLeave, ...others } = props

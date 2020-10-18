@@ -6,7 +6,7 @@ import { HeadCell } from '../Cells'
 import SizeBox from '../SizeBox'
 
 // Components
-import ContentEditable from '../../ContentEditable'
+import ContentEditable from '../ContentEditable'
 
 const Filter = (props) => {
     const { s, showFilters, columns, emitFilter } = props

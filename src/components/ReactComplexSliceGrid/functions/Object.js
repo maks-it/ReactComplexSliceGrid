@@ -1,3 +1,8 @@
+/**
+ * 
+ * @param {object} obj 
+ * @param {String[]} props 
+ */
 const PickObjectProps = (obj, props) => {
   // Make sure object and properties are provided
   if (!obj || !props) return
@@ -14,4 +19,6 @@ const PickObjectProps = (obj, props) => {
   return picked
 }
 
-export default PickObjectProps
+export {
+   PickObjectProps
+}

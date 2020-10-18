@@ -22,7 +22,7 @@
 import React, { useEffect, useRef } from 'react'
 import PropTypes from 'prop-types'
 
-import CanUseDOM from '../../../../functions/CanUseDOM'
+import { CanUseDOM } from '../../functions'
 
 // CSS Modulses Server Side Prerendering
 const s = CanUseDOM() ? require('./scss/style.module.scss') : require('./scss/style.module.scss.json')

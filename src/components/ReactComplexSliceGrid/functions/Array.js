@@ -1,4 +1,10 @@
-const OffsetIndex = (from, to, arr = []) => {
+/**
+ * 
+ * @param {number} from 
+ * @param {number} to 
+ * @param {Array} arr 
+ */
+const OffsetArrayIndex = (from, to, arr = []) => {
   if (from < to) {
     const start = arr.slice(0, from)
     const between = arr.slice(from + 1, to + 1)
@@ -14,4 +20,6 @@ const OffsetIndex = (from, to, arr = []) => {
   return arr
 }
 
-export default OffsetIndex
+export {
+  OffsetArrayIndex
+}

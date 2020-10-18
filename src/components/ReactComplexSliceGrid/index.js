@@ -30,10 +30,14 @@ import ContextMenu from './ContextMenu'
 
 
 // Functions
-import { DeepCopy } from '../../functions/Deep'
-import CanUseDOM from '../../functions/CanUseDOM'
-import PickObjectProps from '../../functions/PickObjectProps'
-import { OffsetIndex } from '../../functions/Arrays'
+import {
+  FilterItems,GlobalFilterItems,
+  SortItems,
+  FocusTabIndex, OffsetArrayIndex,
+  DeepCopy,
+  CanUseDOM,
+  PickObjectProps
+} from './functions'
 
 // CSS Modulses Server Side Prerendering
 const s = CanUseDOM() ? require('./scss/style.module.scss') : require('./scss/style.module.scss.json')
@@ -142,218 +146,6 @@ const ComplexGrid = (props) => {
     viewPortStateRef.current = data
     _setViewPortState(data)
   }
-
-
-  /*
-   * Functions
-   */
-
-  /*
-   * Filtering
-   * Single columns filter 
-   */
-  const filterItems = (items, columns) => {
-    const newItems = []
-        
-    // used for loop due to the performance reasons
-    for(let i = 0, len = items.length; i < len; i++) {
-      const item = items[i]
-      let found = []
-      let hasFilter = false
-
-      Object.keys(columns).filter(colName => colName !=='id').forEach(colName => {
-        const filterText = columns[colName].filterText.toLowerCase()
-        const text = item[colName] ? item[colName].toString().toLowerCase() : ''
-
-        if(filterText !== '') {
-          hasFilter = true
-
-          if(text.indexOf(filterText) > -1) {
-            found.push(true)
-          } else {
-            found.push(false)
-          }
-        }
-      })
-
-      if(hasFilter ? !found.includes(false) : true) {
-        newItems.push(item)
-      }
-    }
-
-    return newItems
-  }
-
-  /*
-   * Multiple columns filter
-   */
-  const globalFilterItems = (items, columns, filterText) => {
-    filterText = filterText.toLowerCase()
-    const newItems = []
-
-    for(let i = 0, len = items.length; i < len; i++) {
-      const item = items[i]
-      let found = false
-
-      if(filterText !== '') {
-        Object.keys(columns).filter(colName => colName !=='id').forEach(colName => {
-          const text = item[colName] ? item[colName].toString().toLowerCase() : ''
-          if(text.indexOf(filterText) > -1) {
-            found = true
-          }
-        })
-      } else {
-        found = true
-      }
-
-      if(found) newItems.push(item)
-    }
-
-    return newItems
-  }
-
-  /*
-   * Sorting
-   * Multiple columns sorting
-   */
-  const sortItems = (items, columns) => {
-    const criteria = []
-    Object.keys(columns).forEach(colName => {
-      criteria.push({
-        key: colName,
-        dataType: columns[colName].dataType,
-        dir: columns[colName].sortDir
-      })
-    })
-
-    return items.sort((a, b) => {
-      /**
-       * 
-       * @param {*} v 
-       */
-      const isNum = function(v){
-        return (!isNaN(parseFloat(v)) && isFinite(v));	
-      };
-
-      /**
-       * 
-       * @param {*} a 
-       * @param {*} b 
-       * @param {number} d - direction
-       */
-      const sortNum = (a, b, d) => {
-        a = a * 1
-        b = b * 1
-
-        if (a === b) return 0
-        return a > b ? 1 * d : -1 * d;
-      }
-
-      /**
-       * 
-       * @param {*} a 
-       * @param {*} b 
-       * @param {number} d 
-       */
-      const sortStr = (a, b, d) => {
-        a = a ? a.toString() : ''
-        b = b ? b.toString() : ''
-
-        return a.localeCompare(b) * d
-      }
-      
-      const results = []
-      
-      for(let i = 0, len = criteria.length; i < len; i++) {
-        const k = criteria[i].key
-        const dataType = criteria[i].dataType
-        const dir = criteria[i].dir === 'asc' ? 1 : criteria[i].dir === 'desc' ? -1 : 0
-        
-        switch(dataType) {
-          case 'string':
-            results.push(sortStr(a[k], b[k], dir))
-          break
-
-          case 'number':
-            results.push(sortNum(a[k], b[k], dir))
-          break
-
-          case 'date-time':
-            break
-
-          default:
-            break
-        } 
-      }
-
-      return results.reduce((sum, result) => sum || result, 0)
-    })
-  }
-
-
-  /**
-   * This is slightly changed function taken from:
-   * * https://www.javascripttutorial.net/dom/css/check-if-an-element-is-visible-in-the-viewport/
-   * @param {object} elem 
-   */
-  const isInViewport =  (elem) => {
-    const parentRect = containerRef.current.getBoundingClientRect();
-    const rect = elem.getBoundingClientRect();
-
-    /* 
-    // Original
-    return rect.top >= 0 && rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-    rect.left >= 0 && rect.right <= (window.innerWidth || document.documentElement.clientWidth)
-    */
-
-    // console.log(parentRect)
-    // console.log(rect)
-
-    /*
-    // Element is fully visible
-    return rect.top >= parentRect.top && rect.bottom <= parentRect.bottom - 25 &&
-    rect.left >= parentRect.left && rect.right <= parentRect.right - 25
-    */
-
-    const scrollBarWidth = 50
-
-    // Element top or right visible
-    return parentRect.left <= rect.left && rect.left <= parentRect.right - scrollBarWidth &&
-    parentRect.top <= rect.top && rect.top <= parentRect.bottom - scrollBarWidth
-  }
-
-  /**
-   * Giving tabIndex, this functions searches it into the DOM and returns:
-   * * true - element is in the viewport
-   * * false - element isn't in DOM
-   * @param {number} tabIndex 
-   */
-  const focusTabIndex = (tabIndex) => {
-    // retreive all elements having tabindex in the DOM tree
-    const elems = tableRef.current.querySelectorAll('[tabindex]')
-
-    let found = false
-    for (let i = 0, len = elems.length; i < len; i++) {
-      let elem = elems[i]
-
-      // tabindex exists in the DOM tree
-      if (tabIndex === +(elem.getAttribute('tabindex'))) {
-        if (!isInViewport(elem)) break
-
-        // focus visible tabindex
-        if(elem.getAttribute('contenteditable')) {
-          elem.click()
-        } else {
-          elem.focus()
-        }
-
-        found = true
-      }
-    }
-
-    return found
-  }
-
 
   /*
    * Event handlers
@@ -565,7 +357,7 @@ const ComplexGrid = (props) => {
       console.log(`from: ${from} to: ${to}`)
 
       const newInnerColumns = {}
-      OffsetIndex(from, to, columns).map(colName => newInnerColumns[colName] = innerColumns[colName])
+      OffsetArrayIndex(from, to, columns).map(colName => newInnerColumns[colName] = innerColumns[colName])
       hookInnerColumns(newInnerColumns)
     }
 
@@ -574,7 +366,7 @@ const ComplexGrid = (props) => {
       const to = parseInt(target.getAttribute('row'))
       console.log(`from: ${from} to: ${to}`)
 
-      hookInnerItems(OffsetIndex(from, to, innerItems))
+      hookInnerItems(OffsetArrayIndex(from, to, innerItems))
     }
     
     setTouchState({})
@@ -666,9 +458,9 @@ const ComplexGrid = (props) => {
   useEffect(() => {
     if(items.length !== innerItems.length) {
       // 1.
-      const globallyFilteredItems = globalFilterItems(items, innerColumns, globalFilterText)
-      const filteredItems = filterItems(globallyFilteredItems, innerColumns)
-      const sortedItems = sortItems(filteredItems, innerColumns)
+      const globallyFilteredItems = GlobalFilterItems(items, innerColumns, globalFilterText)
+      const filteredItems = FilterItems(globallyFilteredItems, innerColumns)
+      const sortedItems = SortItems(filteredItems, innerColumns)
       // 2.
       hookInnerItems(sortedItems.map(item => {
         /*
@@ -691,7 +483,7 @@ const ComplexGrid = (props) => {
       const tabIndex = tabIndexState.tabIndex
 
       if (tabIndex < innerItems.length * Object.keys(innerColumns).length) {
-        if (focusTabIndex(tabIndex)) {
+        if (FocusTabIndex(containerRef.current, tabIndex)) {
           // element is found without slicing the table, so tabIndexState isn't necessary anymore
           setTabIndexState(null)
         } else {
@@ -714,7 +506,7 @@ const ComplexGrid = (props) => {
 
       if (tabIndex < innerItems.length * Object.keys(innerColumns).length) {
 
-        if (focusTabIndex(tabIndex)) {
+        if (FocusTabIndex(containerRef.current, tabIndex)) {
           setTabIndexState(null)
           setTabIndexErrorCount(0)
         } else {
@@ -752,7 +544,7 @@ const ComplexGrid = (props) => {
       const tabIndex = tabIndexState?.tabIndex
 
       if (tabIndex < innerItems.length * Object.keys(innerColumns).length) {
-        focusTabIndex(tabIndex)
+        FocusTabIndex(containerRef.current, tabIndex)
       }
 
       setTabIndexState(null)
@@ -834,9 +626,9 @@ const ComplexGrid = (props) => {
           }
           innerColumns[colName].sortDir = sortDir
 
-          const globalFilteredItems = globalFilterItems(innerItems, innerColumns, globalFilterText)
-          const filteredItems = filterItems(globalFilteredItems, innerColumns)
-          const sortedItems = sortItems(filteredItems, innerColumns)
+          const globalFilteredItems = GlobalFilterItems(innerItems, innerColumns, globalFilterText)
+          const filteredItems = FilterItems(globalFilteredItems, innerColumns)
+          const sortedItems = SortItems(filteredItems, innerColumns)
 
           if (onSort && {}.toString.call(onSort) === '[object Function]') {
             onSort(colName)
@@ -850,9 +642,9 @@ const ComplexGrid = (props) => {
 
           innerColumns[name].filterText = value
 
-          const globalFilteredItems = globalFilterItems(items, innerColumns, globalFilterText)
-          const filteredItems = filterItems(globalFilteredItems, innerColumns)
-          const sortedItems = sortItems(filteredItems, innerColumns)
+          const globalFilteredItems = GlobalFilterItems(items, innerColumns, globalFilterText)
+          const filteredItems = FilterItems(globalFilteredItems, innerColumns)
+          const sortedItems = SortItems(filteredItems, innerColumns)
 
           // 1. callback
           if (onFilter && {}.toString.call(onFilter) === '[object Function]') {
@@ -867,9 +659,9 @@ const ComplexGrid = (props) => {
         emitGlobalFilter: (e) => {
           const { value } = e.target
 
-          const globallyFilteredItems = globalFilterItems(items, innerColumns, value)
-          const filteredItems = filterItems(globallyFilteredItems, innerColumns)
-          const sortedItems = sortItems(filteredItems, innerColumns)
+          const globallyFilteredItems = GlobalFilterItems(items, innerColumns, value)
+          const filteredItems = FilterItems(globallyFilteredItems, innerColumns)
+          const sortedItems = SortItems(filteredItems, innerColumns)
 
           // 1. callback
           if (onGlobalFilter && {}.toString.call(onGlobalFilter) === '[object Function]') {

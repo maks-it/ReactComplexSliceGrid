@@ -30,7 +30,8 @@ import GlobalFilter from './GlobalFilter'
 
 import SortIndicator from './SortIndicator'
 
-import CanUseDOM from '../../../functions/CanUseDOM'
+// Funstions
+import { CanUseDOM } from '../functions'
 
 
 // CSS Modulses Server Side Prerendering

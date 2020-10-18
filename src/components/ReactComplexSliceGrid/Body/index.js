@@ -27,12 +27,10 @@ import { HeadCell, BodyCell } from '../Cells'
 import SizeBox from '../SizeBox'
 
 // Components
-import MyInput from '../../MyInput'
-import ContentEditable from '../../ContentEditable'
+import ContentEditable from '../ContentEditable'
 
 // Functions
-import { DeepMerge } from '../../../functions/Deep'
-import CanUseDOM from '../../../functions/CanUseDOM'
+import { DeepMerge, CanUseDOM } from '../functions'
 
 // External functions
 import * as math from 'mathjs';
