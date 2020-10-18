@@ -105,6 +105,14 @@ const ComplexGrid = (props) => {
     tabIndexStateRef.current = data
     _setTabIndexState(data)
   }
+ 
+  // tabindex error count state
+  const [tabIndexErrorCount, _setTabIndexErrorCount] = useState(0)
+  const tabIndexErrorCountRef = useRef(tabIndexErrorCount)
+  const setTabIndexErrorCount = (data) => {
+    tabIndexErrorCountRef.current = data
+    _setTabIndexErrorCount(data)
+  }
 
   // touch states
   const [touchState, _setTouchState] = useState({})
@@ -307,9 +315,11 @@ const ComplexGrid = (props) => {
     rect.left >= parentRect.left && rect.right <= parentRect.right - 25
     */
 
+    const scrollBarWidth = 50
+
     // Element top or right visible
-    return parentRect.left <= rect.left && rect.left <= parentRect.right - 25 &&
-    parentRect.top <= rect.top && rect.top <= parentRect.bottom - 50
+    return parentRect.left <= rect.left && rect.left <= parentRect.right - scrollBarWidth &&
+    parentRect.top <= rect.top && rect.top <= parentRect.bottom - scrollBarWidth
   }
 
   /**
@@ -692,12 +702,11 @@ const ComplexGrid = (props) => {
           */
          setHSlicer(hSlicer + 1)
         }
-
       }
     }
   }, [tabIndexState])
 
-  const [tabIndexErrorCount, setTabIndexErrorCount] = useState(0)
+  
   useEffect(() => {
     if (tabIndexState) {
       // 2. CELLS TAB
@@ -707,22 +716,30 @@ const ComplexGrid = (props) => {
 
         if (focusTabIndex(tabIndex)) {
           setTabIndexState(null)
-
           setTabIndexErrorCount(0)
         } else {
-          /*
-          * element isn't available in DOM, we move the table by changing vSlice state (+1) to perform Line Feed
-          * and trig useEffect(() => [vSlice]) as consequence, where we will trig Carriage Return
-          * which will cause this method to run once agin
-          * NOTE: we must have tabIndexState !== null to enter this method
-          */
 
-          if(tabIndexErrorCount === 1) {
-            setVSlicer(vSlicer + 1) // on the second consequtive error go to new line, bypass other events
-          } else {
-            setHSlicer(0) // second pass on same state will be ignored
-            setTabIndexErrorCount(tabIndexErrorCount + 1)
+          switch(tabIndexErrorCount) {
+            case 1:
+              setHSlicer(0) // second pass on same state will be ignored
+            break
+
+            case 2:
+             /*
+              * element isn't available in DOM, we move the table by changing vSlice state (+1) to perform Line Feed
+              * and trig useEffect(() => [vSlice]) as consequence, where we will trig Carriage Return
+              * which will cause this method to run once agin
+              * NOTE: we must have tabIndexState !== null to enter this method
+              */
+              setVSlicer(vSlicer + 1) // on the second consequtive error go to new line, bypass other events
+            break
+
+            default: 
+              setHSlicer(hSlicer + 1)
+            break
           }
+
+          setTabIndexErrorCount(tabIndexErrorCount + 1)
         }
       }
     }
@@ -735,11 +752,11 @@ const ComplexGrid = (props) => {
       const tabIndex = tabIndexState?.tabIndex
 
       if (tabIndex < innerItems.length * Object.keys(innerColumns).length) {
-        if (focusTabIndex(tabIndex)) {
-          setTabIndexState(null)
-          setTabIndexErrorCount(0)
-        }       
+        focusTabIndex(tabIndex)
       }
+
+      setTabIndexState(null)
+      setTabIndexErrorCount(0)
     }
   }, [vSlicer])
 
