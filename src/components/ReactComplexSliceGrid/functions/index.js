@@ -8,15 +8,11 @@ import { CreateUUID } from './Guid'
 import { PickObjectProps } from './Object'
 
 export {
-    FilterItems,
-    GlobalFilterItems,
+    FilterItems, GlobalFilterItems,
     SortItems,
-    IsInViewPort,
-    FocusTabIndex,
+    IsInViewPort, FocusTabIndex,
     OffsetArrayIndex,
-    DeepCheck,
-    DeepCopy,
-    DeepMerge,
+    DeepCheck, DeepCopy, DeepMerge,
     CanUseDOM,
     CreateUUID,
     PickObjectProps

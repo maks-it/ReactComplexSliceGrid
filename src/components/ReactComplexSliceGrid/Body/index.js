@@ -84,7 +84,12 @@ const Body = (props) => {
             case 'row-select':
               return <BodyCell key={colIndex} className={[s.td]}>
                 <SizeBox disabled style={row.__style || {}}>
-                  <input type="checkbox" tabIndex={tabIndex} checked={row.selected} onChange={() => emitSlect(row.id)}/>
+                  <input {...{
+                    type: "checkbox",
+                    tabIndex: tabIndex,
+                    checked: row.selected,
+                    onChange: () => emitSlect(row.id)
+                  }} />
                 </SizeBox>
               </BodyCell>
 
