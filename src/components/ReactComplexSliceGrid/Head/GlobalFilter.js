@@ -1,5 +1,5 @@
 // React
-import React from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import PropTypes from 'prop-types'
 
 // Table components
@@ -11,13 +11,17 @@ import SizeBox from '../SizeBox'
 import ContentEditable from '../ContentEditable'
 
 const GlobalFilter = (props) => {
-    const { s, showFilters, columns, globalFilterText, emitGlobalFilter } = props
+    const { s, tableOverflow, showFilters, columns, globalFilterText, emitGlobalFilter } = props
+
+
 
     return <TableRow className={[s.tr, showFilters ? s.show : null]}>
         <HeadCell className={[s.th]}><i className="fas fa-search"></i></HeadCell>
        
         <HeadCell colSpan={Object.keys(columns).length } className={[s.thEditable]}>
-            <SizeBox disabled>
+            <SizeBox disabled style={{
+                width: `calc(100% - ${tableOverflow}px)`
+            }}>
                 <ContentEditable {...{
                     type: 'filter',
                     name: "globalFilter",

@@ -53,9 +53,7 @@
         if(elem.getAttribute('contenteditable')) {
           elem.click()
         } else {
-          // https://webplatform.news/issues/2019-04-19
-          // https://html.spec.whatwg.org/multipage/interaction.html#focus-management-apis
-          elem.focus([{ preventScroll: true }])
+          elem.focus({ preventScroll:true })
         }
 
         found = true

@@ -38,13 +38,17 @@ import { CanUseDOM } from '../functions'
 const s = CanUseDOM() ? require('./scss/style.module.scss') : require('./scss/style.module.scss.json')
 
 const Head = (props) => {
-  const { globalFilterText, columns, selected, emitSlect, emitSort, emitFilter, emitGlobalFilter } = props
+  const { globalFilterText, columns, selected, tableOverflow, emitSlect, emitSort, emitFilter, emitGlobalFilter } = props
 
-  const[showFilters, toggleShowFilters] = useState(false)
+
+  const[showFilters, toggleShowFilters] = useState(true)
+
+
 
   return <thead className={s.thead}>
     <GlobalFilter {...{
       s: s,
+      tableOverflow: tableOverflow,
       showFilters: showFilters,
       columns: columns,
       globalFilterText: globalFilterText,
@@ -65,7 +69,7 @@ const Head = (props) => {
           case 'row-select':
             return <HeadCell key={index} className={[s.th]} scope="col">
               <SizeBox disabled>
-                <input type="checkbox" checked={selected} onChange={() => emitSlect(!selected)} />
+                <input type="checkbox" checked={selected} style={{ margin: '0px' }} onChange={() => emitSlect(!selected)} />
               </SizeBox>
             </HeadCell>
           default:
@@ -73,9 +77,13 @@ const Head = (props) => {
               emitSort(colName)
             }}>
               <SizeBox row={-1} name={colName} rowDisabled style={sizeBoxStyle} type="colSwap">
-                {columns[colName].title} <SortIndicator {...{
+                <div style={{
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}>{columns[colName].title} <SortIndicator {...{
                   sortDir: columns[colName].sortDir
-                }} />
+                }} /></div>
               </SizeBox>
             </HeadCell>
         }

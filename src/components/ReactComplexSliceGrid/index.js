@@ -19,7 +19,7 @@
  * THIS SOFTWARE.
  */
 
-import React, { useEffect, useState, useRef, memo } from 'react'
+import React, { useEffect, useState, useRef, memo, useLayoutEffect } from 'react'
 import PropTypes from 'prop-types'
 
 // Table components
@@ -184,14 +184,18 @@ const ComplexGrid = (props) => {
 
     if(['Tab'].includes(key)) {
       e.preventDefault()
-      
 
       const tabIndex  = +(target.getAttribute('tabindex')) + 1
 
       setTabIndexState({
         tabIndex: tabIndex,
-        trigger: tabIndexState ? !tabIndexState.trigger : true
+        trigger: tabIndexState ? !tabIndexState.trigger : true,
+
+         // workaround for jumping scroll when focusing checkbox on a new line
+        x: window.scrollX,
+        y: window.scrollY
       })
+      
 
       
     }
@@ -290,11 +294,16 @@ const ComplexGrid = (props) => {
       const newVal = touchState.touchAction === 'colResizer' ? touchState.sizeBoxProps.width - delta : touchState.sizeBoxProps.height - delta
       // console.log(`${delta} - ${touchState.sizeBoxProps.width} = ${newVal}`)
       if (touchState.touchAction === 'colResizer') {
-        innerColumns[touchState.sizeBoxProps.name].__style = {
-          width: newVal
+        const rect = containerRef.current.getBoundingClientRect()
+        if(rect.right - 50 > mouseX) {
+          innerColumns[touchState.sizeBoxProps.name].__style = {
+            width: newVal
+          }
+  
+          hookInnerColumns(innerColumns)
         }
 
-        hookInnerColumns(innerColumns)
+
       } else {
         if (touchState.sizeBoxProps.row >= 0) {
           innerItems[touchState.sizeBoxProps.row].__style = {
@@ -396,22 +405,25 @@ const ComplexGrid = (props) => {
 
     const parentNode = containerRef.current.parentNode
     // console.log(parentNode.getBoundingClientRect())
+
+    //const tableOverflow = tableRect - containerRect
+    //console.log(tableOverflow)
+
+    const containerWidth = containerRef.current.offsetWidth
+    console.log(containerWidth)
+    const tableWidth = tableRef.current.scrollWidth
+    console.log(tableWidth)
+
     setViewPortState({
       width: `${parentNode.offsetWidth}px`,
-      height: `${parentNode.offsetHeight}px`
+      height: `${parentNode.offsetHeight}px`,
+      tableOverflow:  containerWidth - tableWidth < 0 ? Math.abs(containerWidth - tableWidth) + 50 : 0
     })
-       
-
   }
-
-
-
-
 
   /*
    * Lifecycle methods
    */
-
   useEffect(() => {
     /*
      * In case there are some missing parameters in var columns,
@@ -447,7 +459,6 @@ const ComplexGrid = (props) => {
     const wheelEvent = 'onwheel' in document.createElement('div') ? 'wheel' : 'mousewheel'
     containerRef.current.addEventListener(wheelEvent, handleMouseScroll, false)
     window.addEventListener('resize', handleViewportResize, false)
-    handleViewportResize()
 
     return () => {
       containerRef.current.removeEventListener(wheelEvent, handleMouseScroll)
@@ -473,7 +484,6 @@ const ComplexGrid = (props) => {
     }
   }, [items])
 
-
   /*
    * Custom cells tab lifecycle methods
    */
@@ -498,7 +508,6 @@ const ComplexGrid = (props) => {
     }
   }, [tabIndexState])
 
-  
   useEffect(() => {
     if (tabIndexState) {
       // 2. CELLS TAB
@@ -547,11 +556,19 @@ const ComplexGrid = (props) => {
         FocusTabIndex(containerRef.current, tabIndex)
       }
 
+      // workaround for jumping scroll when focusing checkbox on a new line
+      window.scrollTo(tabIndexState.x, tabIndexState.y);
+
       setTabIndexState(null)
       setTabIndexErrorCount(0)
     }
   }, [vSlicer])
 
+
+  useLayoutEffect(() => {
+    console.log('dddd')
+    handleViewportResize()
+  }, [innerItems, touchState])
 
   if (!(items.length > 0)) {
     return <div className={`${s.container}`}><div>No Data</div></div>
@@ -597,6 +614,7 @@ const ComplexGrid = (props) => {
         globalFilterText: globalFilterText,
         columns: PickObjectProps(innerColumns, Object.keys(innerColumns).slice(hSlicer, hSlicer + maxCols)),
         selected: innerItems.length > 0 ? innerItems.reduce((sum, next) => sum && next.selected, true) : false,
+        tableOverflow: viewPortState.tableOverflow,
         emitSlect: (selected) => {
           const newItems = innerItems.map(row => {
             row.selected = selected
@@ -703,7 +721,6 @@ const ComplexGrid = (props) => {
           const { name, value } = e.target
 
           // update internal state
-
           for (let i = 0, len = innerItems.length; i < len; i++) {
             if(innerItems[i].id === id) {
               innerItems[i][name] = value

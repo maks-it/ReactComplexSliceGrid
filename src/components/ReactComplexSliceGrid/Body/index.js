@@ -88,6 +88,7 @@ const Body = (props) => {
                     type: "checkbox",
                     tabIndex: tabIndex,
                     checked: row.selected,
+                    style: { margin: '0px' },
                     onChange: () => emitSlect(row.id)
                   }} />
                 </SizeBox>

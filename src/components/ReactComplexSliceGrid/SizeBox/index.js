@@ -33,6 +33,7 @@ const s = CanUseDOM() ? require('./scss/style.module.scss') : require('./scss/st
 
 const SizeBox = (props) => {
   const { className, disabled, colDisabled, rowDisabled, children, onDoubleClick, ...others } = props
+
   return <div className={classNames(s.sizeBox, className)} {...others} onDoubleClick={onDoubleClick}>
     {children}
 

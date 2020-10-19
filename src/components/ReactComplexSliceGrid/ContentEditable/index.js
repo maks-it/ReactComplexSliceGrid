@@ -23,7 +23,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import PropTypes from 'prop-types'
 
 const ContentEditable = (props) => {
-  const { name, value, className, mode, onChange, onLeave, ...others } = props
+  const { name, value, className, mode, onChange, onClick, onLeave, ...others } = props
 
   const divRef = useRef(null)
 
@@ -97,30 +97,34 @@ const ContentEditable = (props) => {
 
   // proxy handlers
   const _onInput = (e) => {
-    const { innerHTML } = e.target
+    const { innerText } = e.target
 
     setCarretPosition(RetreiveCarretPosition(e.target))
-
+    
     if (onChange && {}.toString.call(onChange) === '[object Function]') {
       // reassign target value
       onChange({
         target: {
           name: name,
-          value: innerHTML
+          value: innerText
         }
       })
     }
+  }
+  
+  const _onClick = (e) => {
+    if (onClick && {}.toString.call(onClick) === '[object Function]') {
+      onClick(e)
+    }
+    setEnabled(true)
   }
 
   const handleOutsideClick = (e) => {
     if (enabledRef.current && divRef.current && !divRef.current.contains(e.target)) {
       if (onLeave && {}.toString.call(onLeave) === '[object Function]') {
-        onLeave({
-          target: divRef.current
-        })
+        onLeave(e)
       }
       setEnabled(false)
-      
     }
   }
 
@@ -133,17 +137,35 @@ const ContentEditable = (props) => {
   
   useEffect(() => {
     // check if enebled, as we do not want to fire this event for all content editable divs on the page
-    if (enabled) UpdateCarretPosition(divRef.current, carretPosition)
+    if (enabled) {
+      UpdateCarretPosition(divRef.current, carretPosition)
+    }
   }, [carretPosition, enabled])
 
+  useEffect(() => {
+    // check if enebled, as we do not want to fire this event for all content editable divs on the page
+    if (enabled) {
+      const textLength = divRef.current.innerText.length
+
+      UpdateCarretPosition(divRef.current, {
+        start: textLength,
+        end: textLength
+      })
+    }
+  }, [enabled])
+
+
+  //https://stackoverflow.com/questions/9144644/is-there-a-way-to-prevent-a-contenteditable-element-from-scrolling-when-the-curs/9155043
   return <div ref={divRef} 
     {...{
       contentEditable: enabled,
-      style: !enabled ? { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } : { outline: 'none' },
+      style: !enabled
+        ? { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }
+        : { outline: 'none', wordWrap: 'break-word', /*wordBreak: 'break-all'*/ },
       className: className,
 
       onInput: _onInput,
-      onClick: () => setEnabled(true),
+      onClick: _onClick,
 
       dangerouslySetInnerHTML: { __html: !enabled && value === '' ? '&nbsp;' : value }
     }}  
@@ -153,7 +175,9 @@ const ContentEditable = (props) => {
 
 ContentEditable.defaultProps = {
   value: '',
+  onClick :null,
   onLeave: null
+  
 }
 
 ContentEditable.propTypes = {
@@ -161,6 +185,7 @@ ContentEditable.propTypes = {
   value: PropTypes.string,
   className: PropTypes.string,
   onChange: PropTypes.func.isRequired,
+  onClick: PropTypes.func,
   onLeave: PropTypes.func
 }
 
