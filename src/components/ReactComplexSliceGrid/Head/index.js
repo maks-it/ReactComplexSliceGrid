@@ -40,8 +40,7 @@ const s = CanUseDOM() ? require('./scss/style.module.scss') : require('./scss/st
 const Head = (props) => {
   const { globalFilterText, columns, selected, tableOverflow, emitSlect, emitSort, emitFilter, emitGlobalFilter } = props
 
-
-  const[showFilters, toggleShowFilters] = useState(true)
+  const[showFilters, toggleShowFilters] = useState(false)
 
 
 

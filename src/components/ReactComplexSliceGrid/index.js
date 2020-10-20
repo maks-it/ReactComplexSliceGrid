@@ -570,7 +570,7 @@ const ComplexGrid = (props) => {
     handleViewportResize()
 
     let changed = false
-    document.querySelectorAll('[type=filter]').forEach(elem => {
+    document.querySelectorAll('[type=colSwap]').forEach(elem => {
       const colName = elem.getAttribute('name')
       
       const style = innerColumns[colName].__style

@@ -97,7 +97,8 @@ const ContentEditable = (props) => {
 
   // proxy handlers
   const _onInput = (e) => {
-    const { name, innerText } = e.target
+    
+    const { innerText } = e.target
 
     setCarretPosition(RetreiveCarretPosition(e.target))
     
@@ -159,7 +160,6 @@ const ContentEditable = (props) => {
   return <div ref={divRef}
     {...{
       contentEditable: enabled,
-      name: name,
       style: !enabled
         ? { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }
         : { outline: 'none', wordWrap: 'break-word', /*wordBreak: 'break-all'*/ },
