@@ -77,7 +77,7 @@ const Head = (props) => {
               emitSort(colName)
             }}>
               <SizeBox row={-1} name={colName} rowDisabled style={sizeBoxStyle} type="colSwap">
-                <div style={{
+                <div name={colName} type="colSwap" style={{
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis'

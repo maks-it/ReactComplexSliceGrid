@@ -97,7 +97,7 @@ const ContentEditable = (props) => {
 
   // proxy handlers
   const _onInput = (e) => {
-    const { innerText } = e.target
+    const { name, innerText } = e.target
 
     setCarretPosition(RetreiveCarretPosition(e.target))
     
@@ -156,9 +156,10 @@ const ContentEditable = (props) => {
 
 
   //https://stackoverflow.com/questions/9144644/is-there-a-way-to-prevent-a-contenteditable-element-from-scrolling-when-the-curs/9155043
-  return <div ref={divRef} 
+  return <div ref={divRef}
     {...{
       contentEditable: enabled,
+      name: name,
       style: !enabled
         ? { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }
         : { outline: 'none', wordWrap: 'break-word', /*wordBreak: 'break-all'*/ },

@@ -293,9 +293,14 @@ const ComplexGrid = (props) => {
       const delta = touchState.touchAction === 'colResizer' ? touchState.startPosX - mouseX : touchState.startPosY - mouseY
       const newVal = touchState.touchAction === 'colResizer' ? touchState.sizeBoxProps.width - delta : touchState.sizeBoxProps.height - delta
       // console.log(`${delta} - ${touchState.sizeBoxProps.width} = ${newVal}`)
+      
+      // retreive parent container
+      const containerRect = containerRef.current.getBoundingClientRect()
+
       if (touchState.touchAction === 'colResizer') {
-        const rect = containerRef.current.getBoundingClientRect()
-        if(rect.right - 50 > mouseX) {
+        
+        // avoid to go outside container
+        if(containerRect.right - 50 > mouseX) {
           innerColumns[touchState.sizeBoxProps.name].__style = {
             width: newVal
           }
@@ -305,7 +310,8 @@ const ComplexGrid = (props) => {
 
 
       } else {
-        if (touchState.sizeBoxProps.row >= 0) {
+        // avoid to go outside container
+        if (touchState.sizeBoxProps.row >= 0 && containerRect.bottom - 50 > mouseY) {
           innerItems[touchState.sizeBoxProps.row].__style = {
             height: newVal
           }
@@ -406,13 +412,8 @@ const ComplexGrid = (props) => {
     const parentNode = containerRef.current.parentNode
     // console.log(parentNode.getBoundingClientRect())
 
-    //const tableOverflow = tableRect - containerRect
-    //console.log(tableOverflow)
-
     const containerWidth = containerRef.current.offsetWidth
-    console.log(containerWidth)
     const tableWidth = tableRef.current.scrollWidth
-    console.log(tableWidth)
 
     setViewPortState({
       width: `${parentNode.offsetWidth}px`,
@@ -566,8 +567,24 @@ const ComplexGrid = (props) => {
 
 
   useLayoutEffect(() => {
-    console.log('dddd')
     handleViewportResize()
+
+    let changed = false
+    document.querySelectorAll('[type=filter]').forEach(elem => {
+      const colName = elem.getAttribute('name')
+      
+      const style = innerColumns[colName].__style
+      if(!style) {
+        innerColumns[colName].__style = {
+          width: elem.offsetWidth
+        }
+
+        changed = true
+      }
+    })
+
+    if (changed) hookInnerColumns(innerColumns)
+
   }, [innerItems, touchState])
 
   if (!(items.length > 0)) {

@@ -23,7 +23,7 @@ const GlobalFilter = (props) => {
                 width: `calc(100% - ${tableOverflow}px)`
             }}>
                 <ContentEditable {...{
-                    type: 'filter',
+                    type: 'globalFilter',
                     name: "globalFilter",
                     value: globalFilterText,
                     onChange: emitGlobalFilter
