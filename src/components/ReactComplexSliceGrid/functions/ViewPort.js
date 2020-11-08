@@ -1,10 +1,33 @@
   /**
+ * @license
+ * Internet Systems Consortium license
+ *
+ * Copyright (c) 2020 Maksym Sadovnychyy (MAKS-IT)
+ * Website: https://maks-it.com
+ * Email: commercial@maks-it.com
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any purpose
+ * with or without fee is hereby granted, provided that the above copyright notice
+ * and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
+ * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
+ * THIS SOFTWARE.
+ */
+  
+  /**
    * This is slightly changed function taken from:
    * * https://www.javascripttutorial.net/dom/css/check-if-an-element-is-visible-in-the-viewport/
    * @param {HTMLElement} parentElem 
    * @param {HTMLElement} elem 
+   * @param {number} rightMargin right margin
+   * @param {number} bottomMargin bottom margin
    */
-  const IsInViewPort =  (parentElem, elem) => {
+  const IsInViewPort =  (parentElem, elem, rightMargin = 50, bottomMargin = 50) => {
     const parentRect = parentElem.getBoundingClientRect();
     const rect = elem.getBoundingClientRect();
 
@@ -23,11 +46,9 @@
     rect.left >= parentRect.left && rect.right <= parentRect.right - 25
     */
 
-    const scrollBarWidth = 50
-
     // Element top or right visible
-    return parentRect.left <= rect.left && rect.left <= parentRect.right - scrollBarWidth &&
-    parentRect.top <= rect.top && rect.top <= parentRect.bottom - scrollBarWidth
+    return parentRect.left <= rect.left && rect.left <= parentRect.right - rightMargin &&
+    parentRect.top <= rect.top && rect.top <= parentRect.bottom - bottomMargin
   }
 
   /**

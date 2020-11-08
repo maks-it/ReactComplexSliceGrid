@@ -598,11 +598,7 @@ const ComplexGrid = (props) => {
   /*
    * Implementation
    */
-  return <div {...{
-    ref: containerRef,
-    className: s.container,
-    style: viewPortState,
-
+  return <div {...{ ref: containerRef, className: s.container, style: viewPortState,
     onKeyDown: handleKeyDown,
 
     onTouchStart: handleTouchStart,
@@ -613,8 +609,7 @@ const ComplexGrid = (props) => {
     onMouseMove: handleTouchMove,
     onMouseUp: handleTouchEnd,
 
-    /* onContextMenu: handleContextMenu*/
-  }}>
+    /* onContextMenu: handleContextMenu*/}}>
 
     {/* Scroll Bars */}
     <VScrollBar style={{
@@ -626,7 +621,6 @@ const ComplexGrid = (props) => {
     <HScrollBar value={hSlicer} min={0} max={Object.keys(innerColumns).length - 1} step={1} onChange={(e) => {
       setHSlicer(parseInt(e.target.value))
     }} />
-
 
     {/* Table */}
     <table ref={tableRef} className={`${s.complexGrid}`}>
@@ -763,7 +757,6 @@ const ComplexGrid = (props) => {
         }
       }} />
     </table>
-
 
     <ContextMenu {...{
       isOpen: contextMenuState.isOpen,
