@@ -43,7 +43,11 @@ import {
 const s = CanUseDOM() ? require('./scss/style.module.scss') : require('./scss/style.module.scss.json')
 
 const ComplexGrid = (props) => {
-  const { caption, items, maxRows, maxCols, columns, onSelect, onSort, onFilter, onGlobalFilter, onChange } = props
+  const { caption, items, maxRows, maxCols, columns, onSelect, onSort, onFilter, onGlobalFilter, onChange,
+  
+    rightMargin,
+    bottomMargin
+  } = props
 
   /*
    * Refs
@@ -300,7 +304,7 @@ const ComplexGrid = (props) => {
       if (touchState.touchAction === 'colResizer') {
         
         // avoid to go outside container
-        if(containerRect.right - 50 > mouseX) {
+        if(containerRect.right - rightMargin > mouseX) {
           innerColumns[touchState.sizeBoxProps.name].__style = {
             width: newVal
           }
@@ -311,7 +315,7 @@ const ComplexGrid = (props) => {
 
       } else {
         // avoid to go outside container
-        if (touchState.sizeBoxProps.row >= 0 && containerRect.bottom - 50 > mouseY) {
+        if (touchState.sizeBoxProps.row >= 0 && containerRect.bottom - bottomMargin > mouseY) {
           innerItems[touchState.sizeBoxProps.row].__style = {
             height: newVal
           }
@@ -418,7 +422,7 @@ const ComplexGrid = (props) => {
     setViewPortState({
       width: `${parentNode.offsetWidth}px`,
       height: `${parentNode.offsetHeight}px`,
-      tableOverflow:  containerWidth - tableWidth < 0 ? Math.abs(containerWidth - tableWidth) + 50 : 0
+      tableOverflow:  containerWidth - tableWidth < 0 ? Math.abs(containerWidth - tableWidth) + rightMargin : 0
     })
   }
 
@@ -623,6 +627,7 @@ const ComplexGrid = (props) => {
       setHSlicer(parseInt(e.target.value))
     }} />
 
+
     {/* Table */}
     <table ref={tableRef} className={`${s.complexGrid}`}>
       {/* <caption>{caption}</caption> */}
@@ -752,9 +757,14 @@ const ComplexGrid = (props) => {
 
           // 2. internal
           hookInnerItems(innerItems)
+        },
+        emitCreateRow: () => {
+          
         }
       }} />
     </table>
+
+
     <ContextMenu {...{
       isOpen: contextMenuState.isOpen,
       style: contextMenuState.style,
@@ -775,7 +785,10 @@ ComplexGrid.propTypes = {
   onSelect: PropTypes.func,
   onSort: PropTypes.func,
   onFilter: PropTypes.func,
-  onChange: PropTypes.func
+  onChange: PropTypes.func,
+
+  rightMargin: PropTypes.number,
+  bottomMargin: PropTypes.number
 }
 
 ComplexGrid.defaultProps = {
@@ -785,7 +798,10 @@ ComplexGrid.defaultProps = {
   maxRows: 20,
   maxCols: 20,
   onSelect: null,
-  onChange: null
+  onChange: null,
+
+  rightMargin: 50,
+  bottomMargin: 50
 }
 
 export default memo(ComplexGrid)
