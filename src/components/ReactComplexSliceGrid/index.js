@@ -31,7 +31,7 @@ import ContextMenu from './ContextMenu'
 
 // Functions
 import {
-  FilterItems,GlobalFilterItems,
+  FilterItems, GlobalFilterItems,
   SortItems,
   FocusTabIndex, OffsetArrayIndex,
   DeepCopy,
